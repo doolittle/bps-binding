@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.bookframework.config.BookConfig"/>
+    <classEntry path="com.bookframework.config.BookState"/>
+    <classEntry path="com.bookframework.events.BookEvent"/>
+    <classEntry path="com.bookframework.helpers.AnalyticsHelper"/>
+    <classEntry path="com.bookframework.helpers.BookHelper"/>
+    <classEntry path="com.bookframework.helpers.LetterHelper"/>
+    <classEntry path="com.bookframework.helpers.MaterialHelper"/>
+    <classEntry path="com.bookframework.interfaces.iBookModule"/>
+    <classEntry path="com.bookframework.models.BookHelveticaBold"/>
+    <classEntry path="com.bookframework.models.CameraParams"/>
+    <classEntry path="com.bookframework.models.Markers"/>
+    <classEntry path="com.bookframework.models.vo.AnalyticsRequest"/>
+    <classEntry path="com.bookframework.models.vo.BrightnessVO"/>
+    <classEntry path="com.bookframework.models.vo.Marker"/>
+    <classEntry path="com.bookframework.service.BookService"/>
+    <classEntry path="com.bookframework.service.MarkerService"/>
+    <classEntry path="com.bookframework.views.VideoDisplay"/>
+    <classEntry path="com.bookframework.views.modules.BookModule"/>
+    <classEntry path="com.bookframework.views.modules.Letter"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>
