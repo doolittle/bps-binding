@@ -152,9 +152,9 @@ package com.bookframework.helpers
           l.destination_y     = 40
           l.destination_z     = -200
           l.destination_x     = 40
-          l.destination_rx    = l.character.rotationX
-          l.destination_ry    = l.character.rotationY
-          l.destination_rz    = l.character.rotationZ
+          l.destination_rx    = NumberHelper.random(-360,360)
+          l.destination_ry    = NumberHelper.random(-360,360)
+          l.destination_rz    =  NumberHelper.random(-360,360)
           l.destination_scale = 0
           l.destination_alpha = 1        
           break;
