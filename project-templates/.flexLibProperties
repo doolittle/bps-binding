@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.betweenpageandscreen.binding.config.BookConfig"/>
+    <classEntry path="com.betweenpageandscreen.binding.config.BookState"/>
+    <classEntry path="com.betweenpageandscreen.binding.events.BookEvent"/>
+    <classEntry path="com.betweenpageandscreen.binding.fonts.BookCentury"/>
+    <classEntry path="com.betweenpageandscreen.binding.fonts.BookHelveticaBold"/>
+    <classEntry path="com.betweenpageandscreen.binding.helpers.AnalyticsHelper"/>
+    <classEntry path="com.betweenpageandscreen.binding.helpers.BookHelper"/>
+    <classEntry path="com.betweenpageandscreen.binding.helpers.LetterHelper"/>
+    <classEntry path="com.betweenpageandscreen.binding.helpers.MaterialHelper"/>
+    <classEntry path="com.betweenpageandscreen.binding.interfaces.iBookModule"/>
+    <classEntry path="com.betweenpageandscreen.binding.models.CameraParams"/>
+    <classEntry path="com.betweenpageandscreen.binding.models.Markers"/>
+    <classEntry path="com.betweenpageandscreen.binding.models.vo.AnalyticsRequest"/>
+    <classEntry path="com.betweenpageandscreen.binding.models.vo.BrightnessVO"/>
+    <classEntry path="com.betweenpageandscreen.binding.models.vo.Marker"/>
+    <classEntry path="com.betweenpageandscreen.binding.service.BookService"/>
+    <classEntry path="com.betweenpageandscreen.binding.service.MarkerService"/>
+    <classEntry path="com.betweenpageandscreen.binding.views.VideoDisplay"/>
+    <classEntry path="com.betweenpageandscreen.binding.views.modules.BookModule"/>
+    <classEntry path="com.betweenpageandscreen.binding.views.modules.Letter"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

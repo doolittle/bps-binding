@@ -1,0 +1,6 @@
+.actionScriptProperties
+.project
+.idea/
+.settings/
+.DS_Store
+*.iml

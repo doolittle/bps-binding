@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>BetweenPageAndScreen-Binding</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.adobe.flexbuilder.project.flexbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.adobe.flexbuilder.project.flexlibnature</nature>
+		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>[source path] AS3-Utils-src</name>
+			<type>2</type>
+			<locationURI>DOCUMENTS/AS3-Utils/src</locationURI>
+		</link>
+		<link>
+			<name>[source path] flarkit-alchemy-src</name>
+			<type>2</type>
+			<locationURI>CLASS_PATH/flarkit-alchemy/src</locationURI>
+		</link>
+		<link>
+			<name>[source path] fp10</name>
+			<type>2</type>
+			<locationURI>CLASS_PATH/betweenAS3-trunk/src/fp10</locationURI>
+		</link>
+		<link>
+			<name>[source path] vectorvision-src</name>
+			<type>2</type>
+			<locationURI>CLASS_PATH/vectorvision/src</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>CLASS_PATH</name>
+			<value>file:/C:/classes</value>
+		</variable>
+	</variableList>
+</projectDescription>
