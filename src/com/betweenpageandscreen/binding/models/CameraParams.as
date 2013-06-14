@@ -14,11 +14,9 @@ package com.betweenpageandscreen.binding.models
     }
     
     public function update(data:ByteArray):void {
-      trace("Setting camera params")
       _params = new FLARParam();
-      _params.loadARParamFile(data)
+      _params.loadARParamFile(data);
       _params.changeScreenSize(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT);
-     
     }
   }
 }

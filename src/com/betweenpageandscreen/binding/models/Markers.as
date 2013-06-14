@@ -21,8 +21,8 @@ package com.betweenpageandscreen.binding.models
       _markers = [] 
     }
 
+    //Save markers as a bytearray
     public function save(event:Event=null):void {
-      trace("Saving markers")
       var ba:ByteArray = new ByteArray;
       var m:Array = markers;
       ba.writeObject(m) 
