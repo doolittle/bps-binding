@@ -61,12 +61,12 @@ package com.betweenpageandscreen.binding.views
     private var module:iBookModule;
     private var raster:FLARRgbRaster;
     private var detectors:Vector.<FLARSingleMarkerDetector> = new Vector.<FLARSingleMarkerDetector>(BookConfig.NUM_MARKERS)
-    private var modules:Dictionary = new Dictionary
-    private var num_detectors:Number = 0
-    private var active_detector:FLARSingleMarkerDetector
+    private var modules:Dictionary = new Dictionary;
+    private var num_detectors:Number = 0;
+    private var active_detector:FLARSingleMarkerDetector;
 
     private var transformation:FLARTransMatResult  = new FLARTransMatResult;
-    private var last_transformation:FLARTransMatResult
+    private var last_transformation:FLARTransMatResult;
     private var transformation_stack:Array = new Array(16);
 
     public function VideoDisplay() {
@@ -77,30 +77,27 @@ package com.betweenpageandscreen.binding.views
       if (!patt) return;
 
       var flar_code:FLARCode = new FLARCode(BookConfig.MARKER_SIZE, BookConfig.MARKER_SIZE);
-      flar_code.loadARPattFromFile(patt)
+      flar_code.loadARPattFromFile(patt);
 
       var detector:FLARSingleMarkerDetector = new FLARSingleMarkerDetector(params.params, flar_code, BookConfig.CODE_WIDTH);
-      detector.setContinueMode(true)
+      detector.setContinueMode(true);
 
-      detectors[ module_id] = detector
+      detectors[ module_id] = detector;
 
-      module.id         = module_id
-      modules[detector] = module
+      module.id         = module_id;
+      modules[detector] = module;
 
     }
 
     public function setup(params:CameraParams):void {
-      trace("\n ### Setting up pv3d")
-
-      num_detectors = detectors.length
-      setup_pv3d(params)
-      setup_viewport()
-
+      num_detectors = detectors.length;
+      setup_pv3d(params);
+      setup_viewport();
     }
 
     public function override_signal(custom_signal:Sprite):void {
       SpriteHelper.destroy(signal);
-      signal = custom_signal
+      signal = custom_signal;
     }
 
     public function start():void {
@@ -110,14 +107,16 @@ package com.betweenpageandscreen.binding.views
 
     public function setup_webcam():void {
 
-      BookState.CAMERAS = Camera.names
+      BookState.CAMERAS = Camera.names;
       if (BookState.CAMERAS.length > 0) dispatchEvent(new BookEvent(BookEvent.WEBCAM_MULTIPLE));
 
       video       = new Video(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT);
-      capture     = new BitmapData(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT, false)
-      raster      = new FLARRgbRaster(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT)
+      capture     = new BitmapData(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT, false);
+      raster      = new FLARRgbRaster(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT);
 
-      if (attach_webcam()) dispatchEvent(new BookEvent(BookEvent.WEBCAM_ATTACHED))
+      if (attach_webcam()) {
+        dispatchEvent(new BookEvent(BookEvent.WEBCAM_ATTACHED));
+      }
 
     }
 
@@ -129,45 +128,44 @@ package com.betweenpageandscreen.binding.views
       if (!BookState.SELECTED_CAMERA && GeneralHelper.is_on_a_mac()) {
         var index:int=0, i:Number = -1;
         while (++i < Camera.names.length) {
-          if (Camera.names[i]=="USB Video Class Video") index = i
+          if (Camera.names[i]=="USB Video Class Video") index = i;
         }
-        if (index!=0) BookState.SELECTED_CAMERA = index.toString() //Apparently camera[0] is not a camera on a mac.
+        if (index!=0) BookState.SELECTED_CAMERA = index.toString(); //Apparently camera[0] is not a camera on a mac.
       }
-
 
       webcam = Camera.getCamera(BookState.SELECTED_CAMERA);
       trace("You selected:" + BookState.SELECTED_CAMERA + "|" + webcam + "|" + webcam.muted)
 
       if (!webcam) {
-        trace("Didn't find a webcam")
-        dispatchEvent(new BookEvent(BookEvent.WEBCAM_FAIL))
+        trace("Didn't find a webcam");
+        dispatchEvent(new BookEvent(BookEvent.WEBCAM_FAIL));
         return false;
       } else if (webcam.muted || Capabilities.avHardwareDisable) {
-        trace("Webcam is muted")
+        trace("Webcam is muted");
         dispatchEvent(new BookEvent(BookEvent.WEBCAM_MUTED));
         return false;
       }
 
       webcam.setMode(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT, BookConfig.CAM_FPS,false);
-      webcam.setMotionLevel(BookConfig.MOTION_LEVEL,BookConfig.MOTION_LEVEL)
+      webcam.setMotionLevel(BookConfig.MOTION_LEVEL,BookConfig.MOTION_LEVEL);
       webcam.addEventListener(ActivityEvent.ACTIVITY,monitor_activity);
       webcam.addEventListener(StatusEvent.STATUS, monitor_status);
       video.attachCamera(webcam);
 
-      return true
+      return true;
 
     }
 
     private function setup_viewport():void {
 
-      var b:Rectangle = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT)
-      GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1) //Screenback the camera image--white ghost to make 3d element more contrasty.
+      var b:Rectangle = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
+      GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1); //Screenback the camera image--white ghost to make 3d element more contrasty.
 
-      b.inflate(10,10)
-      GraphicsHelper.border(signal, b, 0xFF0000, 0xFF0000)
-      signal.alpha = .5
-      signal.visible = false
-      SpriteHelper.add_these(this, video, screen, signal, viewport)
+      b.inflate(10,10);
+      GraphicsHelper.border(signal, b, 0xFF0000, 0xFF0000);
+      signal.alpha = .5;
+      signal.visible = false;
+      SpriteHelper.add_these(this, video, screen, signal, viewport);
     }
 
     private function setup_pv3d(params:CameraParams):void {
@@ -175,11 +173,11 @@ package com.betweenpageandscreen.binding.views
       viewport = new Viewport3D(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
       camera3d = new FLARCamera3D(params.params);
 
-      marker = new FLARMarkerNode
-      marker.useClipping = true
+      marker = new FLARMarkerNode;
+      marker.useClipping = true;
 
       scene_pv = new Scene3D();
-      scene_pv.addChild(marker)
+      scene_pv.addChild(marker);
 
       plane = new Plane( new ColorMaterial(0xff0000,.2),85,85);
       if (BookConfig.DEBUG)  marker.addChild(plane);
@@ -191,17 +189,16 @@ package com.betweenpageandscreen.binding.views
     private function tick(e:Event = null):void {
       if (BookState.PAUSED) return;
       if ((lost_marker > TICK_DELAY) && ((lost_marker%5) != 0)) { //Ease up on processing if no marker
-        lost_marker++
-        test_timeout()
-        renderer.render()
+        lost_marker++;
+        test_timeout();
+        renderer.render();
         return;
       }
 
       if (webcam && (webcam.activityLevel > BookConfig.MOTION_LEVEL ||  !active_detector || !module)) { //Don't recalculate if there's no activity. stops flickering.
         capture.draw(video,scale);
-        raster.setBitmapData(capture)
+        raster.setBitmapData(capture);
         var detected:Boolean = false, i:Number = -1, detector:FLARSingleMarkerDetector;
-
         try {
           if (active_detector) { //Do we already have a detector?
             detected = (active_detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && active_detector.getConfidence() > BookConfig.MIN_CONFIDENCE);
@@ -210,8 +207,8 @@ package com.betweenpageandscreen.binding.views
             while (++i < num_detectors) { //TODO: This would be faster if we started one below the id of the last found marker since the user won't be randomly shuffling through the book.
               detector = detectors[i]
               if (detector && detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && detector.getConfidence() > BookConfig.HIGH_CONFIDENCE) {
-                active_detector = detector
-                detected = true
+                active_detector = detector;
+                detected = true;
                 break;
               }
             }
