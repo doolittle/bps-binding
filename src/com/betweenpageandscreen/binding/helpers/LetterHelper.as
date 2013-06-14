@@ -26,11 +26,11 @@ package com.betweenpageandscreen.binding.helpers
     public static function place_array(a:Array, scale:Number = 1):Number {
       var last_y:Number = 0, l:Letter, current_width:Number
       a.forEach(function(l:Letter, ...remainder):void {
-          l.destination_scale = scale
-          current_width = BookConfig.TYPEFACE.widths[l.string]*l.destination_scale
+          l.destination_scale = scale;
+          current_width = BookConfig.TYPEFACE.widths[l.string]*l.destination_scale;
           l.character.y = last_y + current_width/2
-          last_y+=current_width
-          l.character.scale = scale
+          last_y+=current_width;
+          l.character.scale = scale;
         })
       return last_y
     }
@@ -42,12 +42,12 @@ package com.betweenpageandscreen.binding.helpers
       l.character.y           = 0;
       l.character.z           = 0;
       l.character.rotationY   = 0;
-      l.character.rotationX   = 90
-      l.character.rotationZ   = 90
+      l.character.rotationX   = 90;
+      l.character.rotationZ   = 90;
     }
 
     public static function character_width(character:String):Number {
-      return BookConfig.TYPEFACE.widths[character]
+      return BookConfig.TYPEFACE.widths[character];
     }
 
     public static function line(content:String, index:Number, a:Array, justify:Boolean=false, phrase:Array=null, container:DisplayObject3D=null, max_line_width:Number=0, prepopulated:Boolean=false, intro_type:String='from_marker'):Number {
@@ -55,19 +55,19 @@ package com.betweenpageandscreen.binding.helpers
       var display:Array = StringHelper.trim(content).split("");
       var letters:Array = [];
       var erasures:Object = {};
-      var i:Number = -1, num_letters:Number = display.length, letter:Letter
-      var last_y:Number = -60
-      var last_z:Number = 60
-      var current_width:Number = 0
-      var scale:Number = .15
-      var line_width:Number = 280
-      var last_line:Boolean = (index==(a.length-1))
+      var i:Number = -1, num_letters:Number = display.length, letter:Letter;
+      var last_y:Number = -60;
+      var last_z:Number = 60;
+      var current_width:Number = 0;
+      var scale:Number = .15;
+      var line_width:Number = 280;
+      var last_line:Boolean = (index==(a.length-1));
 
       var text_width:Number = 0, skipped:Number=0, num_spaces:Number=0, k:String,
         erasable:Boolean=true;
       while (++i < num_letters) {
 
-        k = display[i]
+        k = display[i];
 
         if (k=="[" && display[i+1]=="[") { //Starting bracket
           i++;
@@ -97,7 +97,6 @@ package com.betweenpageandscreen.binding.helpers
 
       if (last_line) last_y+= max_line_width - (text_width)
 
-      //trace("\nWriting line:" + num_letters + "|" + prepopulated )
       num_letters-=skipped;
       i = -1;
 
