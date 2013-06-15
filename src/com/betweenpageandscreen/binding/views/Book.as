@@ -86,5 +86,10 @@ public class Book extends Sprite {
     videoDisplay.start();
   }
 
+  public function reassign_markers():void {
+    trace("Book :: reassigning markers");
+    dispatchEvent(new BookEvent(BookEvent.MARKERS_REASSIGN));
+  }
+
 }
 }

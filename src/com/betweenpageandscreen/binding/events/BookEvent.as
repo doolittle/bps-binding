@@ -26,6 +26,7 @@ package com.betweenpageandscreen.binding.events
     public static var MARKER_PRINT:String       = 'marker_print';
     
     public static var MARKERS_RESET:String      = 'markers_reset';
+    public static var MARKERS_REASSIGN:String   = 'markers_reassign';
     public static var MARKERS_COMPLETE:String   = 'markers_complete';
       
     public static var MODULE_DESTROY:String     = 'module_destroy';

@@ -52,11 +52,14 @@ public class BootstrapperMediator extends Mediator{
     eventMap.mapListener(eventDispatcher, BookEvent.MARKER_LOAD, markers_load, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.MARKERS_COMPLETE, markers_complete, BookEvent);
 
+
     eventMap.mapListener(eventDispatcher, BookEvent.WEBCAM_ATTACH, webcam_attach, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.VIEW_PREP, view_prep, BookEvent);
 
     eventMap.mapListener(view, BookEvent.VIEW_PREPPED, view_prepped, BookEvent);
+    eventMap.mapListener(view, BookEvent.MARKERS_REASSIGN, markers_reassign, BookEvent);
 
+    //TODO: If we need the webcam permission the interface appears to hang.
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_ATTACHED, next, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MULTIPLE, error, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_FAIL, error, BookEvent);
@@ -95,7 +98,14 @@ public class BootstrapperMediator extends Mediator{
     }
   }
 
+  //TODO: This should be part of the markers class.
   private function markers_complete(event:BookEvent=null):void {
+    markers_assign();
+    view.stop_waiting();
+    next(event);
+  }
+
+  private function markers_assign():void {
     var module_num:int = 0;
     markers.markers.forEach(
       function(marker_string:String, ...rest):void {
@@ -103,8 +113,11 @@ public class BootstrapperMediator extends Mediator{
       }
     );
 
-    view.stop_waiting();
-    next(event);
+  }
+
+  private function markers_reassign(event:BookEvent=null):void {
+    trace("## Bootstrapper trying to re-assign markers.")
+    markers_assign();
   }
 
   private function webcam_attach(event:BookEvent=null):void {
