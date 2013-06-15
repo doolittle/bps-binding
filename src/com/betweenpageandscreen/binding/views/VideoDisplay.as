@@ -239,7 +239,7 @@ import org.papervision3d.objects.primitives.Plane;
             if (!detected && lost_marker > (TICK_DELAY*1)) active_detector = null; //don't kill current detector for a few ticks.
           } else  { //We don't already have a detector, loop through all of them.
             while (++i < num_detectors) { //TODO: This would be faster if we started one below the id of the last found marker since the user won't be randomly shuffling through the book.
-              detector = detectors[i]
+              detector = detectors[i];
               if (detector && detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && detector.getConfidence() > BookConfig.HIGH_CONFIDENCE) {
                 active_detector = detector;
                 detected = true;
@@ -248,7 +248,7 @@ import org.papervision3d.objects.primitives.Plane;
             }
           }
         } catch (e:Error) {
-          trace("Tick error")
+          trace("Tick error");
         }
 
         if (detected ) {
@@ -263,16 +263,16 @@ import org.papervision3d.objects.primitives.Plane;
               if (module) module.remove();
               lost_marker = 0;
               module = temp;
-              BookHelper.debug("Introing module:" + module.id)
+              BookHelper.debug("Introing module:" + module.id);
               module.init(this, marker);
               module.intro();
-              dispatchEvent(new BookEvent(BookEvent.MARKER_FOUND))
-              BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MAX},null,.5,Quad.easeIn).play()
-              AnalyticsHelper.event("marker_found/" + module.id)
+              dispatchEvent(new BookEvent(BookEvent.MARKER_FOUND));
+              BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MAX},null,.5,Quad.easeIn).play();
+              AnalyticsHelper.event("marker_found/" + module.id);
             }
           }
 
-          if (active_detector) active_detector.getTransformMatrix(transformation)
+          if (active_detector) active_detector.getTransformMatrix(transformation);
           if (transformation) {
             /*
             transformation.getValue(transformation_stack);
@@ -295,7 +295,7 @@ import org.papervision3d.objects.primitives.Plane;
             BookHelper.debug("Removing module")
             dispatchEvent(new BookEvent(BookEvent.MARKER_LOST))
             BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MIN},null,.5,Quad.easeIn).play()
-            module.remove()
+            module.remove();
             module = null;
           }
           test_timeout();
@@ -303,11 +303,11 @@ import org.papervision3d.objects.primitives.Plane;
       }
 
       if (module) module.tick();
-      renderer.render()
+      renderer.render();
     }
 
     protected function module_for(target_detector:FLARSingleMarkerDetector):iBookModule {
-      return modules[target_detector]
+      return modules[target_detector];
     }
 
     private function monitor_status(event:StatusEvent):void { //monitor webcam status
@@ -324,7 +324,7 @@ import org.papervision3d.objects.primitives.Plane;
 
     private function test_timeout():void {
       if (BookConfig.HIDE_TIMEOUT) return; // Do not show marker.
-      if (lost_marker == BookConfig.LOST_MARKER_TIMEOUT) dispatchEvent(new BookEvent(BookEvent.MARKER_TIMEOUT))
+      if (lost_marker == BookConfig.LOST_MARKER_TIMEOUT) dispatchEvent(new BookEvent(BookEvent.MARKER_TIMEOUT));
     }
 
   }

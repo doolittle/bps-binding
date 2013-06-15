@@ -10,7 +10,7 @@ package com.betweenpageandscreen.binding.views.modules
 
   public class BookModule extends EventDispatcher implements iBookModule 
   {
-    private var _id:Number
+    private var _id:Number;
     protected var exit_tween:ObjectTween;
    
     protected function setup():void { }
@@ -24,17 +24,16 @@ package com.betweenpageandscreen.binding.views.modules
     
     protected function iterate_phrase(phrase:Object, method:Function):void {
       phrase.forEach(function(a:Array, ...rest):void { 
-        if (!a) return; 
+        if (!a) return;
         a.forEach(function(l:Letter, ...rest):void {
-          method(l); 
+          method(l);
         })
-      })      
-    }   
+      })
+    }
         
     protected function request_destroy():void { //Sends the request to destroy the module. Listener is reset on init, so we don't kill an existing module when the outro is finished. 
       dispatchEvent(new BookEvent(BookEvent.MODULE_DESTROY)); 
     }
 
-    
   }
 }

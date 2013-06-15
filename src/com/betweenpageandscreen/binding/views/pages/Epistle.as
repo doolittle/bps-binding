@@ -47,7 +47,11 @@ public class Epistle extends BookModule
     removeEventListener(BookEvent.MODULE_DESTROY,destroy);
     container = c;
     marker = m as FLARMarkerNode;
-    trace(text_id + ":\tIniting epistle:" + phrase.length + " letters and " + lines.length + " lines")
+    trace(text_id + ":\tIniting epistle:"
+        + phrase.length +
+        " letters and "
+        + lines.length
+        + " lines");
     iterate_phrase(phrase,
         function(l:Letter, ...rest):void {
           destroy_letter(null, l, true);
@@ -100,8 +104,7 @@ public class Epistle extends BookModule
   }
 
   private function destroy(event:*=null):void {
-    trace("Destroying flat text")
-    marker.removeChild(text)
+    marker.removeChild(text);
   }
 
 }

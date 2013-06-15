@@ -8,7 +8,7 @@ package com.betweenpageandscreen.binding.models
 
   public class CameraParams
   {
-    private var _params:FLARParam
+    private var _params:FLARParam;
     public function get params():FLARParam {
       return _params; 
     }

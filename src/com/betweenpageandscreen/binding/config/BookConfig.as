@@ -62,7 +62,6 @@ import org.papervision3d.typography.Font3D;
       } else {
         return (stage.stageWidth - DISPLAY_PADDING)/VIEW_WIDTH;
       }
-      return 1;
     }
 
     public static var HIGH_CONFIDENCE:Number  = 0.75; //If we don't already have a marker, require a higher tolerance
@@ -78,23 +77,28 @@ import org.papervision3d.typography.Font3D;
     }
 
     public static function set ROOM_BRIGHTNESS(s:String):void {
-      __room_brightness = s
+      __room_brightness = s;
       switch (__room_brightness) {
         case BrightnessVO.BRIGHT:
-          THRESHOLD = 60
+          THRESHOLD = 60;
           break;
         case BrightnessVO.DARK:
-          THRESHOLD = 120
+          THRESHOLD = 120;
           break;
         case BrightnessVO.AVERAGE:
         default:
-          THRESHOLD = 80
+          THRESHOLD = 80;
           break;
       }
     }
 
-    public static function get VIEW_WIDTH():Number { return CAMERA_WIDTH;    }
-    public static function get VIEW_HEIGHT():Number {  return CAMERA_HEIGHT;  }
+    public static function get VIEW_WIDTH():Number {
+      return CAMERA_WIDTH;
+    }
+
+    public static function get VIEW_HEIGHT():Number {
+      return CAMERA_HEIGHT;
+    }
 
   }
 }

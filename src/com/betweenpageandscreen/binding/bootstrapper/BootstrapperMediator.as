@@ -120,7 +120,7 @@ public class BootstrapperMediator extends Mediator{
   }
 
   private function markers_reassign(event:BookEvent=null):void {
-    trace("## Bootstrapper trying to re-assign markers.")
+    trace("## Bootstrapper trying to re-assign markers.");
     markers_assign();
   }
 
