@@ -16,7 +16,7 @@ package com.betweenpageandscreen.binding.views.modules
     protected function setup():void { }
     
     public function set id(n:Number):void { _id = n; }
-    public function get id():Number { return _id; }            
+    public function get id():Number { return _id; }
     public function init(c:Sprite, m:*):void { }
     public function tick():void {}
     public function intro():void { }
@@ -30,7 +30,7 @@ package com.betweenpageandscreen.binding.views.modules
         })
       })
     }
-        
+
     protected function request_destroy():void { //Sends the request to destroy the module. Listener is reset on init, so we don't kill an existing module when the outro is finished. 
       dispatchEvent(new BookEvent(BookEvent.MODULE_DESTROY)); 
     }

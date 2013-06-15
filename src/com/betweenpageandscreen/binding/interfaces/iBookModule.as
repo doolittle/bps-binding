@@ -4,12 +4,12 @@ package com.betweenpageandscreen.binding.interfaces
   
   public interface iBookModule
   {
-    function get id():Number
-    function set id(n:Number):void
-    function intro():void
-    function remove():void 
-    function init(c:Sprite, m:*):void 
-    function tick():void 
+    function get id():Number;
+    function set id(n:Number):void;
+    function intro():void;
+    function remove():void;
+    function init(c:Sprite, m:*):void;
+    function tick():void;
        
   }
 }

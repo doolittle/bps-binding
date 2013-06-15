@@ -163,7 +163,9 @@ import org.papervision3d.objects.primitives.Plane;
     private function setup_viewport():void {
 
       var b:Rectangle = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
-      GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1); //Screenback the camera image--white ghost to make 3d element more contrasty.
+
+      //Screenback the camera image--white ghost to make 3d element more contrasty.
+      GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1);
 
       b.inflate(10,10);
       GraphicsHelper.border(signal, b, 0xFF0000, 0xFF0000);
@@ -238,9 +240,16 @@ import org.papervision3d.objects.primitives.Plane;
             detected = (active_detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && active_detector.getConfidence() > BookConfig.MIN_CONFIDENCE);
             if (!detected && lost_marker > (TICK_DELAY*1)) active_detector = null; //don't kill current detector for a few ticks.
           } else  { //We don't already have a detector, loop through all of them.
-            while (++i < num_detectors) { //TODO: This would be faster if we started one below the id of the last found marker since the user won't be randomly shuffling through the book.
+            while (++i < num_detectors) {
+              // TODO: This would be faster if we started one below the id
+              // of the last found marker since the user won't be randomly
+              // shuffling through the book.
               detector = detectors[i];
-              if (detector && detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && detector.getConfidence() > BookConfig.HIGH_CONFIDENCE) {
+              if (
+                  detector
+                  && detector.detectMarkerLite(raster, BookConfig.THRESHOLD)
+                  && detector.getConfidence() > BookConfig.HIGH_CONFIDENCE
+              ) {
                 active_detector = detector;
                 detected = true;
                 break;
@@ -258,8 +267,9 @@ import org.papervision3d.objects.primitives.Plane;
 
           if (active_detector && (!module || lost_marker > 0)) {
             var temp:iBookModule = module_for(active_detector);
-            //if (temp==module)  { lost_marker = 0; return; }  // not sure why this would happen.
-            if (found_marker > TICK_DELAY && (module!=temp)) { //We new found a marker for a period of time, let's intro it.
+
+            if (found_marker > TICK_DELAY && (module!=temp)) {
+              //We new found a marker for a period of time, let's intro it.
               if (module) module.remove();
               lost_marker = 0;
               module = temp;
@@ -272,7 +282,10 @@ import org.papervision3d.objects.primitives.Plane;
             }
           }
 
-          if (active_detector) active_detector.getTransformMatrix(transformation);
+          if (active_detector) {
+            active_detector.getTransformMatrix(transformation);
+          }
+
           if (transformation) {
             /*
             transformation.getValue(transformation_stack);

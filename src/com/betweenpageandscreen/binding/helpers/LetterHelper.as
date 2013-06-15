@@ -95,7 +95,9 @@ package com.betweenpageandscreen.binding.helpers
 
       var space_size:Number = (text_width < line_width/BookConfig.LINE_JUSTIFICATION_TOLERANCE || !justify || last_line) ? character_width(" ")*scale : (line_width - text_width)/num_spaces
 
-      if (last_line) last_y+= max_line_width - (text_width);
+      if (last_line) {
+        last_y+= max_line_width - (text_width);
+      }
 
       num_letters-=skipped;
       i = -1;
@@ -131,7 +133,6 @@ package com.betweenpageandscreen.binding.helpers
             match_to_destination(letter);
             break;
         }
-
 
         if (!prepopulated) {
           if (!phrase[index]) phrase[index] = [];

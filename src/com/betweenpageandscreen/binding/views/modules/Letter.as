@@ -40,8 +40,8 @@ package com.betweenpageandscreen.binding.views.modules
       material.baked          = true;
       material.smooth         = false;
       material.interactive    = false;
-      //material.scaleStroke    = true;
-      character = new Letter3D(string, material,BookConfig.TYPEFACE);
+      //material.scaleStroke  = true;
+      character               = new Letter3D(string, material,BookConfig.TYPEFACE);
       character.scale         = .05;
       character.rotationX     = 90;
       character.rotationZ     = 90;

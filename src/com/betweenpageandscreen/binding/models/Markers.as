@@ -28,7 +28,7 @@ package com.betweenpageandscreen.binding.models
       ba.compress();
       var f:FileReference = new FileReference;
       f.save(ba,"markers.ba");
-    }        
-    
+    }
+
   }
 }

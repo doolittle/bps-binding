@@ -9,8 +9,8 @@ package com.betweenpageandscreen.binding.helpers
   import org.papervision3d.materials.BitmapMaterial;
   import org.papervision3d.materials.MovieMaterial;
 
-  public class MaterialHelper
-  {
+  public class MaterialHelper {
+
     public static function bitmap_mat(texture:Sprite, padding:Number = 25, scale:Number=1,doublesided:Boolean=true, precise:Boolean=true, smooth:Boolean=true):BitmapMaterial {
       texture.scaleX = texture.scaleY = scale;
       var template:Sprite = new Sprite;

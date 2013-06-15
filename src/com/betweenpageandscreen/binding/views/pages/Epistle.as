@@ -85,15 +85,15 @@ public class Epistle extends BookModule
   }
 
   private function explode():void {
-    trace("Exploding flat text");
     to_destroy = 0;
     destroyed = 0;
     var outro:String = 'explode'; //ArrayHelper.random(['explode', 'drop', 'up']) as String
-    iterate_phrase(phrase, function(l:Letter, ...rest):void {
-      to_destroy++;
-      if (NumberHelper.sample(5)) return destroy_letter(null, l, true) //drop 20% to make remainder faster.
-      LetterHelper.exit(l, container, destroy_letter,outro);
-    })
+    iterate_phrase(phrase,
+      function(l:Letter, ...rest):void {
+        to_destroy++;
+        if (NumberHelper.sample(5)) return destroy_letter(null, l, true) //drop 20% to make remainder faster.
+        LetterHelper.exit(l, container, destroy_letter,outro);
+    });
   }
 
   private function destroy_letter(event:Event=null, _l:Letter=null, auto:Boolean=false):void {

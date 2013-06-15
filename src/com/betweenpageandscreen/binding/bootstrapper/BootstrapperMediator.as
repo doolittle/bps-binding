@@ -57,17 +57,17 @@ public class BootstrapperMediator extends Mediator{
     eventMap.mapListener(eventDispatcher, BookEvent.MARKER_LOAD, markers_load, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.MARKERS_COMPLETE, markers_complete, BookEvent);
 
-
     eventMap.mapListener(eventDispatcher, BookEvent.WEBCAM_ATTACH, webcam_attach, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.VIEW_PREP, view_prep, BookEvent);
 
     eventMap.mapListener(view, BookEvent.VIEW_PREPPED, view_prepped, BookEvent);
     eventMap.mapListener(view, BookEvent.MARKERS_REASSIGN, markers_reassign, BookEvent);
 
-    //TODO: If we need the webcam permission the interface appears to hang.
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_ATTACHED, next, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MULTIPLE, error, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_FAIL, error, BookEvent);
+
+    //If the webcam is muted we need to ask for permission, otherwise app hangs.
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MUTED, webcam_muted, BookEvent);
 
     eventMap.mapListener(contextView.stage, Event.RESIZE, resize);
