@@ -11,7 +11,12 @@ import com.bradwearsglasses.utils.debug.bwgFPS;
 import com.bradwearsglasses.utils.helpers.LayoutHelper;
 
 import flash.events.Event;
+import flash.events.StatusEvent;
 import flash.geom.Point;
+import flash.media.Camera;
+import flash.media.Video;
+import flash.system.Security;
+import flash.system.SecurityPanel;
 import flash.utils.ByteArray;
 import org.robotlegs.mvcs.Mediator;
 
@@ -63,7 +68,7 @@ public class BootstrapperMediator extends Mediator{
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_ATTACHED, next, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MULTIPLE, error, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_FAIL, error, BookEvent);
-    eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MUTED, error, BookEvent);
+    eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MUTED, webcam_muted, BookEvent);
 
     eventMap.mapListener(contextView.stage, Event.RESIZE, resize);
 
@@ -112,7 +117,6 @@ public class BootstrapperMediator extends Mediator{
         view.videoDisplay.add_marker(marker_string,Pages.PAGES[module_num],module_num++,cameraParams)
       }
     );
-
   }
 
   private function markers_reassign(event:BookEvent=null):void {
@@ -129,9 +133,28 @@ public class BootstrapperMediator extends Mediator{
     view.intro(); //Plays animation
   }
 
-  private function view_prepped(event:BookEvent):void {
+  private function view_prepped(event:BookEvent=null):void {
     view.start();
     next(event);
+  }
+
+  //If the webcam is muted we need to show the security panel
+  private function webcam_muted(event:BookEvent=null):void {
+
+    //Only way we know if user accepts security is if camera status changes (?)
+    var camera:Camera = Camera.getCamera();
+    if (camera) {
+      camera.addEventListener(StatusEvent.STATUS, changed_camera_status);
+      var video:Video = new Video(camera.width, camera.height);
+      video.attachCamera(camera);
+    }
+
+    Security.showSettings(SecurityPanel.PRIVACY);
+  }
+
+  private function changed_camera_status(event:Event=null):void {
+    trace("Camera changed status, reattaching.");
+    dispatch(new BookEvent(BookEvent.WEBCAM_ATTACH));
   }
 
   private function resize(event:Event=null):void {
