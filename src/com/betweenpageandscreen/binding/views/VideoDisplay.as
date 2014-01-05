@@ -5,6 +5,7 @@ package com.betweenpageandscreen.binding.views
   import com.betweenpageandscreen.binding.events.BookEvent;
   import com.betweenpageandscreen.binding.helpers.AnalyticsHelper;
   import com.betweenpageandscreen.binding.helpers.BookHelper;
+  import com.betweenpageandscreen.binding.helpers.PVHelper;
   import com.betweenpageandscreen.binding.interfaces.iBookModule;
   import com.betweenpageandscreen.binding.models.CameraParams;
   import com.bradwearsglasses.utils.helpers.GeneralHelper;
@@ -31,71 +32,66 @@ package com.betweenpageandscreen.binding.views
   import org.libspark.flartoolkit.detector.FLARSingleMarkerDetector;
   import org.libspark.flartoolkit.support.pv3d.FLARCamera3D;
   import org.libspark.flartoolkit.support.pv3d.FLARMarkerNode;
-import org.papervision3d.core.geom.Lines3D;
-import org.papervision3d.core.geom.renderables.Line3D;
-import org.papervision3d.core.geom.renderables.Vertex3D;
-import org.papervision3d.materials.ColorMaterial;
-import org.papervision3d.materials.special.LineMaterial;
-import org.papervision3d.objects.primitives.Plane;
+  import org.papervision3d.materials.ColorMaterial;
+  import org.papervision3d.objects.primitives.Plane;
   import org.papervision3d.render.LazyRenderEngine;
   import org.papervision3d.scenes.Scene3D;
   import org.papervision3d.view.Viewport3D;
 
   public class VideoDisplay extends Sprite
   {
+    public var webcam:Camera;
+    public var screen:Sprite      = new Sprite;
+    public var signal:Sprite      = new Sprite;
 
     private var viewport:Viewport3D;
     private var camera3d:FLARCamera3D;
     private var scene_pv:Scene3D;
     private var renderer:LazyRenderEngine;
-    private var marker:FLARMarkerNode;
+    private var markerWrapper3D:FLARMarkerNode;
     private var plane:Plane;
-    private var scale:Matrix  = new Matrix;
-    private var lost_marker:Number   = 0;
-    private var found_marker:Number  = 0;
-    private var TICK_DELAY:Number    = 6;
+    private var videoTransformation:Matrix  = new Matrix;
+    private var lost_marker_count:int   = 0;
+    private var found_marker_count:int  = 0;
+    private var TICK_DELAY:int    = BookConfig.TICK_DELAY;
 
-    private var webcam:Camera;
     private var video:Video;
     private var capture:BitmapData;
 
-    public var screen:Sprite        = new Sprite;
-    public var signal:Sprite        = new Sprite;
+    private var current_module:iBookModule;
 
-    private var module:iBookModule;
     private var raster:FLARRgbRaster;
-    private var detectors:Vector.<FLARSingleMarkerDetector> = new Vector.<FLARSingleMarkerDetector>(BookConfig.NUM_MARKERS)
+    private var markers:Vector.<FLARSingleMarkerDetector> = new Vector.<FLARSingleMarkerDetector>(BookConfig.NUM_MARKERS);
     private var modules:Dictionary = new Dictionary;
-    private var num_detectors:Number = 0;
-    private var active_detector:FLARSingleMarkerDetector;
+    private var num_markers:int = 0;
+    private var detected_marker:FLARSingleMarkerDetector;
 
     private var transformation:FLARTransMatResult  = new FLARTransMatResult;
-    private var last_transformation:FLARTransMatResult;
-    private var transformation_stack:Array = new Array(16);
 
     public function VideoDisplay() {
-      scale.scale(BookConfig.DOWNSAMPLE, BookConfig.DOWNSAMPLE);
+      videoTransformation.scale(BookConfig.DOWNSAMPLE, BookConfig.DOWNSAMPLE);
     }
 
-    public function add_marker(patt:String, module:iBookModule,module_id:Number, params:CameraParams):void {
+    // Matches markers to modules (i.e. pages)
+    public function add_marker(patt:String, module:iBookModule,module_id:int, params:CameraParams):void {
       if (!patt) return;
 
       var flar_code:FLARCode = new FLARCode(BookConfig.MARKER_SIZE, BookConfig.MARKER_SIZE);
       flar_code.loadARPattFromFile(patt);
 
-      var detector:FLARSingleMarkerDetector = new FLARSingleMarkerDetector(params.params, flar_code, BookConfig.CODE_WIDTH);
-      detector.setContinueMode(true);
+      var marker:FLARSingleMarkerDetector = new FLARSingleMarkerDetector(params.params, flar_code, BookConfig.CODE_WIDTH);
+      marker.setContinueMode(true);
 
-      detectors[ module_id] = detector;
+      markers[module_id] = marker;
 
       module.id         = module_id;
-      modules[detector] = module;
+      modules[marker]   = module;
 
     }
 
     public function setup(params:CameraParams):void {
-      num_detectors = detectors.length;
-      setup_pv3d(params);
+      num_markers = markers.length;
+      setup_papervision(params);
       setup_viewport();
     }
 
@@ -120,17 +116,19 @@ import org.papervision3d.objects.primitives.Plane;
 
       if (attach_webcam()) {
         dispatchEvent(new BookEvent(BookEvent.WEBCAM_ATTACHED));
+      } else {
+        // attach_webcam() broadcasts errors attaching webcam.
       }
 
     }
 
     public function attach_webcam():Boolean {
 
-      if (webcam) webcam.removeEventListener(ActivityEvent.ACTIVITY, monitor_activity)
-      trace("Trying to get camera:" + BookState.SELECTED_CAMERA + "|" + BookState.CAMERAS)
+      if (webcam) webcam.removeEventListener(ActivityEvent.ACTIVITY, monitor_activity);
+      trace("Trying to get camera:" + BookState.SELECTED_CAMERA + "|" + BookState.CAMERAS);
 
       if (!BookState.SELECTED_CAMERA && GeneralHelper.is_on_a_mac()) {
-        var index:int=0, i:Number = -1;
+        var index:int=0, i:int = -1;
         while (++i < Camera.names.length) {
           if (Camera.names[i]=="USB Video Class Video") index = i;
         }
@@ -150,13 +148,52 @@ import org.papervision3d.objects.primitives.Plane;
         return false;
       }
 
-      webcam.setMode(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT, BookConfig.CAM_FPS,false);
+      trace('Before setMode, camera is ' + webcam.width + 'x' + webcam.height);
+      trace(" || Setting camera mode:" + BookConfig.CAMERA_WIDTH + "x" + BookConfig.CAMERA_HEIGHT);
+      webcam.setMode(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT, BookConfig.CAM_FPS,true);
+
+      trace("Camera actually set to:" + webcam.width + "x" + webcam.height + " | FPS:" + webcam.fps + "|" + webcam.currentFPS);
+      trace("Video is:" + video.width + "x" + video.height);
+
       webcam.setMotionLevel(BookConfig.MOTION_LEVEL,BookConfig.MOTION_LEVEL);
+      webcam.setQuality(0,100); //Not sure if this is relevant
+
+      // Flash tells us whether anything is happening in the camera frame.
+      // We're not doing anything with this right now.
       webcam.addEventListener(ActivityEvent.ACTIVITY,monitor_activity);
+
+      // Listen for webcam muting (user disables it for whatever reason).
       webcam.addEventListener(StatusEvent.STATUS, monitor_status);
+
       video.attachCamera(webcam);
 
       return true;
+
+    }
+
+    private function setup_papervision(params:CameraParams):void {
+
+      viewport = new Viewport3D(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
+
+      //Flop viewport
+      viewport.x = BookConfig.VIEW_WIDTH;
+      viewport.scaleX*=-1;
+
+      camera3d = new FLARCamera3D(params.params);
+
+      markerWrapper3D = new FLARMarkerNode(FLARMarkerNode.AXIS_MODE_PV3D);
+      markerWrapper3D.useClipping = true;
+
+      scene_pv = new Scene3D();
+      scene_pv.addChild(markerWrapper3D);
+
+      if (BookConfig.DEBUG) {
+        plane = new Plane( new ColorMaterial(0x000000,.4),80,80);
+        markerWrapper3D.addChild(plane);
+        plane.addChild(PVHelper.draw_axes());
+      }
+
+      renderer = new LazyRenderEngine(scene_pv, camera3d, viewport);
 
     }
 
@@ -167,90 +204,82 @@ import org.papervision3d.objects.primitives.Plane;
       //Screenback the camera image--white ghost to make 3d element more contrasty.
       GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1);
 
-      b.inflate(10,10);
+      b.inflate(BookConfig.BORDER_PADDING-1,BookConfig.BORDER_PADDING-1);
       GraphicsHelper.border(signal, b, 0xFF0000, 0xFF0000);
-      signal.alpha = .5;
       signal.visible = false;
+
       SpriteHelper.add_these(this, video, screen, signal, viewport);
-    }
 
-    private function setup_pv3d(params:CameraParams):void {
+      //Flop image
+      video.scaleX = -1;
+      video.x = video.width;
 
-      viewport = new Viewport3D(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
-      camera3d = new FLARCamera3D(params.params);
-
-      marker = new FLARMarkerNode;
-      marker.useClipping = true;
-
-      scene_pv = new Scene3D();
-      scene_pv.addChild(marker);
-
-      plane = new Plane( new ColorMaterial(0x000000,.4),80,80);
-      if (BookConfig.DEBUG) {
-        marker.addChild(plane);
-        plane.addChild(draw_axes());
-      }
-
-      renderer = new LazyRenderEngine(scene_pv, camera3d, viewport);
-    }
-
-    private function draw_axes():Lines3D {
-      // Borrowed from http://blog.tartiflop.com/2008/07/first-steps-in-papervision3d-part-1/
-      // Is there a default width for this?
-      // Create a default line material and a Lines3D object (container for Line3D objects)
-      var defaultMaterial:LineMaterial = new LineMaterial(0xFFFFFF);
-      var axes:Lines3D = new Lines3D(defaultMaterial);
-
-      // Create a different colour line material for each axis
-      var xAxisMaterial:LineMaterial = new LineMaterial(0xFF0000);
-      var yAxisMaterial:LineMaterial = new LineMaterial(0x00FF00);
-      var zAxisMaterial:LineMaterial = new LineMaterial(0x0000FF);
-
-      // Create a origin vertex
-      var origin:Vertex3D = new Vertex3D(0, 0, -5);
-
-      // Create a new line (length 100) for each axis using the different materials and a width of 2.
-      var xAxis:Line3D = new Line3D(axes, xAxisMaterial, 4, origin, new Vertex3D(60, 0, 0));
-      var yAxis:Line3D = new Line3D(axes, yAxisMaterial, 4, origin, new Vertex3D(0, 60, 0));
-      var zAxis:Line3D = new Line3D(axes, zAxisMaterial, 4, origin, new Vertex3D(0, 0, -60));
-
-      // Add lines to the Lines3D container
-      axes.addLine(xAxis);
-      axes.addLine(yAxis);
-      axes.addLine(zAxis);
-      return axes;
     }
 
     // This is where all the good stuff happens.
     private function tick(e:Event = null):void {
+
       if (BookState.PAUSED) return;
-      if ((lost_marker > TICK_DELAY) && ((lost_marker%5) != 0)) { //Ease up on processing if no marker
-        lost_marker++;
+
+      // Ease up on processing if no marker
+      // Looking for a marker is expensive because we need to
+      // iterate through each marker on every tick.
+      // The app bogs down, so we throttle it to 20%
+      if (
+          (lost_marker_count > TICK_DELAY) &&
+          ((lost_marker_count%5) != 0) //Throttle to 1 in 5
+      ) {
+        lost_marker_count++;
         test_timeout();
+        if (current_module) current_module.tick();
         renderer.render();
         return;
       }
 
-      if (webcam && (webcam.activityLevel > BookConfig.MOTION_LEVEL ||  !active_detector || !module)) { //Don't recalculate if there's no activity. stops flickering.
-        capture.draw(video,scale);
+      // Don't recalculate position if there's no activity -
+      // reduces flickering when reader is trying to hold still.
+      if (webcam && (!detected_marker || !current_module || webcam.activityLevel > BookConfig.MOTION_LEVEL)) {
+
+        // Update raster with the video data (i.e. webcam image)
+        capture.draw(video,videoTransformation);
         raster.setBitmapData(capture);
-        var detected:Boolean = false, i:Number = -1, detector:FLARSingleMarkerDetector;
+
+        var detected:Boolean = false,
+            i:int = -1,
+            test_marker:FLARSingleMarkerDetector;
+
         try {
-          if (active_detector) { //Do we already have a detector?
-            detected = (active_detector.detectMarkerLite(raster, BookConfig.THRESHOLD) && active_detector.getConfidence() > BookConfig.MIN_CONFIDENCE);
-            if (!detected && lost_marker > (TICK_DELAY*1)) active_detector = null; //don't kill current detector for a few ticks.
-          } else  { //We don't already have a detector, loop through all of them.
-            while (++i < num_detectors) {
+
+          //Do we already have a marker?
+          if (detected_marker) {
+
+            // Do we still have the marker?
+            detected = (detected_marker.detectMarkerLite(raster, BookConfig.THRESHOLD)
+                && detected_marker.getConfidence() > BookConfig.MIN_CONFIDENCE);
+
+            if (!detected && lost_marker_count > (TICK_DELAY*1)) {
+              // We lost the marker and we've waited long
+              // enough that we should unset it
+              // We delay a few ticks to reduce hiccups.
+              detected_marker = null;
+            }
+
+          } else  {
+            // We don't already have a detector,
+            // so we loop through all of them.
+            // This is expensive.
+            while (++i < num_markers) {
               // TODO: This would be faster if we started one below the id
-              // of the last found marker since the user won't be randomly
-              // shuffling through the book.
-              detector = detectors[i];
+              // of the last found marker since the reader probably won't
+              // be randomly shuffling through the book.
+              test_marker = markers[i];
               if (
-                  detector
-                  && detector.detectMarkerLite(raster, BookConfig.THRESHOLD)
-                  && detector.getConfidence() > BookConfig.HIGH_CONFIDENCE
+                  test_marker
+                  && test_marker.detectMarkerLite(raster, BookConfig.THRESHOLD)
+                  && test_marker.getConfidence() > BookConfig.HIGH_CONFIDENCE
               ) {
-                active_detector = detector;
+                // Found a marker we like.
+                detected_marker = test_marker;
                 detected = true;
                 break;
               }
@@ -263,59 +292,60 @@ import org.papervision3d.objects.primitives.Plane;
         if (detected ) {
 
           signal.visible = true;
-          plane.visible  = true;
 
-          if (active_detector && (!module || lost_marker > 0)) {
-            var temp:iBookModule = module_for(active_detector);
+          if (detected_marker && (!current_module || lost_marker_count > TICK_DELAY)) {
 
-            if (found_marker > TICK_DELAY && (module!=temp)) {
-              //We new found a marker for a period of time, let's intro it.
-              if (module) module.remove();
-              lost_marker = 0;
-              module = temp;
-              BookHelper.debug("Introing module:" + module.id);
-              module.init(this, marker);
-              module.intro();
+            // Get the module for this marker.
+            var detected_module:iBookModule = module_for(detected_marker);
+
+            // Has the marker been on screen for long enough?
+            // If so, let's intro it.
+            if (found_marker_count > TICK_DELAY && (current_module!==detected_module)) {
+
+              if (current_module) current_module.remove();
+              lost_marker_count = 0;
+              current_module = detected_module;
+
+              BookHelper.debug("Introing module:" + current_module.id);
+
+              // TODO: Why does the module need to know "this" (the container)?
+              current_module.init(this, markerWrapper3D);
+              current_module.intro();
+
               dispatchEvent(new BookEvent(BookEvent.MARKER_FOUND));
-              BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MAX},null,.5,Quad.easeIn).play();
-              AnalyticsHelper.event("marker_found/" + module.id);
+              BetweenAS3.tween(screen, {alpha:BookConfig.SCREEN_ALPHA_MAX}, null, 0.5, Quad.easeIn).play();
+              AnalyticsHelper.event("marker_found/" + current_module.id);
+
             }
           }
 
-          if (active_detector) {
-            active_detector.getTransformMatrix(transformation);
+          if (detected_marker) {
+            detected_marker.getTransformMatrix(transformation);
+            markerWrapper3D.setTransformMatrix(transformation); //Update marker wrapper
           }
 
-          if (transformation) {
-            /*
-            transformation.getValue(transformation_stack);
-            trace ("n11:" + transformation_stack[0*4+0]);
-            trace ("n22:" + transformation_stack[1*4+2]);
-            trace ("n33:" + transformation_stack[2*4+2]);
-            trace("\n");
-            */
-            marker.setTransformMatrix(transformation);
-          }
+          found_marker_count++;
 
-          found_marker++
+        // No marker found.
         } else {
+
           //trace("lost_marker " + lost_marker + "|" + module)
           signal.visible = false;
-          plane.visible  = false;
-          lost_marker++;
-          found_marker = 0;
-          if (module && (lost_marker > TICK_DELAY)) {
-            BookHelper.debug("Removing module")
-            dispatchEvent(new BookEvent(BookEvent.MARKER_LOST))
-            BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MIN},null,.5,Quad.easeIn).play()
-            module.remove();
-            module = null;
+          lost_marker_count++;
+          found_marker_count = 0;
+
+          if (current_module && (lost_marker_count >= TICK_DELAY)) {
+            BookHelper.debug("Removing module");
+            dispatchEvent(new BookEvent(BookEvent.MARKER_LOST));
+            BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MIN},null,.5,Quad.easeIn).play();
+            current_module.remove();
+            current_module = null;
           }
-          test_timeout();
+
         }
       }
 
-      if (module) module.tick();
+      if (current_module) current_module.tick();
       renderer.render();
     }
 
@@ -337,7 +367,7 @@ import org.papervision3d.objects.primitives.Plane;
 
     private function test_timeout():void {
       if (BookConfig.HIDE_TIMEOUT) return; // Do not show marker.
-      if (lost_marker == BookConfig.LOST_MARKER_TIMEOUT) dispatchEvent(new BookEvent(BookEvent.MARKER_TIMEOUT));
+      if (lost_marker_count === BookConfig.LOST_MARKER_TIMEOUT) dispatchEvent(new BookEvent(BookEvent.MARKER_TIMEOUT));
     }
 
   }
