@@ -10,22 +10,23 @@ package com.betweenpageandscreen.binding.views.modules
 
   public class BookModule extends EventDispatcher implements iBookModule 
   {
-    private var _id:Number;
+    private var _id:int;
     protected var exit_tween:ObjectTween;
    
     protected function setup():void { }
     
-    public function set id(n:Number):void { _id = n; }
-    public function get id():Number { return _id; }
-    public function init(c:Sprite, m:*):void { }
+    public function set id(n:int):void { _id = n; }
+    public function get id():int { return _id; }
+
+    public function init(_container:Sprite, _marker:*):void { }
     public function tick():void {}
     public function intro():void { }
     public function remove():void {}
     
     protected function iterate_phrase(phrase:Object, method:Function):void {
-      phrase.forEach(function(a:Array, ...rest):void { 
-        if (!a) return;
-        a.forEach(function(l:Letter, ...rest):void {
+      phrase.forEach(function(lines:Array, ...rest):void {
+        if (!lines) return;
+        lines.forEach(function(l:Letter, ...rest):void {
           method(l);
         })
       })
