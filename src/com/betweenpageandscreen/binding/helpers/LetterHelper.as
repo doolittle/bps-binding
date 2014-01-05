@@ -9,10 +9,8 @@ package com.betweenpageandscreen.binding.helpers
   import flash.events.Event;
 
   import org.libspark.betweenas3.core.easing.IEasing;
-  import org.libspark.betweenas3.easing.Elastic;
   import org.libspark.betweenas3.easing.Exponential;
   import org.libspark.betweenas3.easing.Quad;
-  import org.libspark.betweenas3.easing.Quart;
   import org.papervision3d.objects.DisplayObject3D;
 
   public class LetterHelper
@@ -55,9 +53,8 @@ package com.betweenpageandscreen.binding.helpers
       var display:Array = StringHelper.trim(content).split("");
       var letters:Array = [];
       var erasures:Object = {};
-      var i:Number = -1, num_letters:Number = display.length, letter:Letter;
+      var i:int = -1, num_letters:int = display.length, letter:Letter;
       var last_y:Number = -60;
-      var last_z:Number = 60;
       var current_width:Number = 0;
       var scale:Number = .15;
       var line_width:Number = 280;
