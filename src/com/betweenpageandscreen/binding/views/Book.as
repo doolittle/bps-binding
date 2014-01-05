@@ -9,7 +9,6 @@ import com.bradwearsglasses.utils.helpers.SpriteHelper;
 
 import flash.display.Sprite;
 import flash.events.Event;
-import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
 
@@ -23,7 +22,6 @@ public class Book extends Sprite {
   public var videoDisplay:VideoDisplay = new VideoDisplay;
   public var display_port:Sprite;
 
-  private var scale:Matrix  = new Matrix;
   private var border:Sprite;
   private var pulse:Sprite;
   private var exit:ObjectTween;
@@ -31,13 +29,11 @@ public class Book extends Sprite {
 
   public function Book(){
 
-    scale.scale(BookConfig.DOWNSAMPLE, BookConfig.DOWNSAMPLE);
-
     var bounds:Rectangle  = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
     display_port = GraphicsHelper.strut(new Sprite,bounds);
 
-    bounds.inflate(8,8);
-    border = GraphicsHelper.recession(new Sprite, bounds,0x888888);
+    bounds.inflate(BookConfig.BORDER_PADDING,BookConfig.BORDER_PADDING);
+    border = GraphicsHelper.recession(new Sprite, bounds, 0xCCCCCC, 0xF2F2F2);
 
     pulse = GraphicsHelper.box(new Sprite, GraphicsHelper.rect(10, 10),0x000000,1);
 
@@ -64,8 +60,13 @@ public class Book extends Sprite {
   public function intro():void {
     SpriteHelper.destroy(pulse);
     LayoutHelper.in_center(display_port, display_port, border, null,true);
-    var params:Object = {y: 0, x:0,  scaleX:1, scaleY:1};
-    var tween:ObjectTween = BetweenAS3.tween(border,params,null,.75,Quad.easeIn) as ObjectTween;
+
+    var tween:ObjectTween = BetweenAS3.tween(border,
+        {y: 0, x:0,  scaleX:1, scaleY:1},
+        null,
+        .75,
+        Quad.easeIn) as ObjectTween;
+
     tween.onComplete = complete_intro;
     tween.play();
   }
