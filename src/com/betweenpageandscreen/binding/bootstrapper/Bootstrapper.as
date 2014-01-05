@@ -6,11 +6,11 @@ import com.betweenpageandscreen.binding.models.Markers;
 import com.betweenpageandscreen.binding.service.BookService;
 import com.betweenpageandscreen.binding.service.MarkerService;
 import com.betweenpageandscreen.binding.views.Book;
-import com.betweenpageandscreen.binding.views.Book;
 import com.bradwearsglasses.utils.helpers.ArrayHelper;
 
 import flash.display.DisplayObjectContainer;
 import flash.events.Event;
+import flash.media.Camera;
 
 import flash.utils.ByteArray;
 
@@ -19,6 +19,14 @@ import org.robotlegs.mvcs.Context;
 public class Bootstrapper extends Context{
 
   public var book:Book;
+  public function get webcam():Camera {
+    try {
+      return book.videoDisplay.webcam;
+    } catch(e:Error) {
+      trace("## Bootstrapper: Could not get webcam. ##");
+    }
+    return null;
+  }
 
   //Commands to call in order.
   private var init_sequence:Array =
@@ -37,12 +45,13 @@ public class Bootstrapper extends Context{
   }
 
   [Embed(source="../../../../resources/camera.ba", mimeType="application/octet-stream")]
-  private static var _camera:Class;
-  public static function get camera():ByteArray {
-    return new _camera
+  private static var _camera_config:Class;
+  public static function get camera_config():ByteArray {
+    return new _camera_config
   }
 
   public function Bootstrapper(contextView:DisplayObjectContainer=null, autoStartup:Boolean=true)  {
+    trace("\n### BPS Binding " + BookConfig.BINDING_VERSION + "###\n");
     super(contextView, autoStartup);
     map();
     super.startup();
@@ -66,7 +75,7 @@ public class Bootstrapper extends Context{
 
     // TEMP: Until we support bootstrapping uncached camera and markers,
     // set cached values for cameras and markers.
-    BookConfig.CAMERA_DATA = camera;
+    BookConfig.CAMERA_DATA = camera_config;
     BookConfig.MARKERS_DATA = markers;
 
     setListeners();
