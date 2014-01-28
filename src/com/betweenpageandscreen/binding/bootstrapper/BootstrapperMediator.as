@@ -56,18 +56,21 @@ public class BootstrapperMediator extends Mediator{
     eventMap.mapListener(eventDispatcher, BookEvent.CAMERA_PARAMS_COMPLETE, next, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.MARKER_LOAD, markers_load, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.MARKERS_COMPLETE, markers_complete, BookEvent);
+    eventMap.mapListener(eventDispatcher, BookEvent.MARKERS_REASSIGN, markers_reassign, BookEvent);
+
+    // Set marker preview mode - turns markers on permanently
+    eventMap.mapListener(eventDispatcher, BookEvent.MARKER_PREVIEW_MODE, set_preview_mode, BookEvent);
 
     eventMap.mapListener(eventDispatcher, BookEvent.WEBCAM_ATTACH, webcam_attach, BookEvent);
     eventMap.mapListener(eventDispatcher, BookEvent.VIEW_PREP, view_prep, BookEvent);
 
     eventMap.mapListener(view, BookEvent.VIEW_PREPPED, view_prepped, BookEvent);
-    eventMap.mapListener(view, BookEvent.MARKERS_REASSIGN, markers_reassign, BookEvent);
 
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_ATTACHED, next, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MULTIPLE, error, BookEvent);
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_FAIL, error, BookEvent);
 
-    //If the webcam is muted we need to ask for permission, otherwise app hangs.
+    // If the webcam is muted we need to ask for permission, otherwise app hangs.
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MUTED, webcam_muted, BookEvent);
 
     eventMap.mapListener(contextView.stage, Event.RESIZE, resize);
@@ -119,6 +122,7 @@ public class BootstrapperMediator extends Mediator{
     );
   }
 
+  //TODO: it would be more efficient to just update the modules.
   private function markers_reassign(event:BookEvent=null):void {
     trace("## Bootstrapper trying to re-assign markers.");
     markers_assign();
@@ -169,6 +173,10 @@ public class BootstrapperMediator extends Mediator{
       fps.x = 0;
       fps.y = contextView.stage.stageHeight - 25;
     }
+  }
+
+  private function set_preview_mode(event:BookEvent):void {
+    view.videoDisplay.marker_preview_mode(event.data["status"]);
   }
 
 }

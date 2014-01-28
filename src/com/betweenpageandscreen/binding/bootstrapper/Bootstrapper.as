@@ -51,7 +51,7 @@ public class Bootstrapper extends Context{
   }
 
   public function Bootstrapper(contextView:DisplayObjectContainer=null, autoStartup:Boolean=true)  {
-    trace("\n### BPS Binding " + BookConfig.BINDING_VERSION + "###\n");
+    trace("\n### BPS Binding " + BookConfig.BINDING_VERSION + " ###\n");
     super(contextView, autoStartup);
     map();
     super.startup();
@@ -126,7 +126,8 @@ public class Bootstrapper extends Context{
     }
   }
 
-  private function dispatch(type:String, data:*=null):void {
+  public function dispatch(type:String, data:*=null):void {
+    trace("Bootstrapper: dispatching event:" + type);
     var event:BookEvent = new BookEvent(type, 'default', data);
     dispatchEvent(event);
   }
