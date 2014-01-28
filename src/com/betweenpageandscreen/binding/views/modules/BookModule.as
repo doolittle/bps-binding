@@ -7,12 +7,39 @@ package com.betweenpageandscreen.binding.views.modules
   import flash.events.EventDispatcher;
   
   import org.libspark.betweenas3.core.tweens.ObjectTween;
+import org.papervision3d.core.math.Number3D;
 
-  public class BookModule extends EventDispatcher implements iBookModule 
+public class BookModule extends EventDispatcher implements iBookModule
   {
     private var _id:int;
     protected var exit_tween:ObjectTween;
-   
+
+    private var _preview_rotation:Number3D = new Number3D(100,-45,-5);
+    public function get preview_rotation():Number3D {
+      return _preview_rotation;
+    }
+
+    public function set preview_rotation(n:Number3D):void {
+      _preview_rotation = n;
+    }
+
+    private var _preview_position:Number3D = new Number3D(60,20,986);
+    public function get preview_position():Number3D {
+      return _preview_position;
+    }
+    public function set preview_position(n:Number3D):void {
+      _preview_position = n;
+    }
+
+    private var _preview_scale:Number = 1;
+    public function get preview_scale():Number {
+      return _preview_scale;
+    }
+
+    public function set preview_scale(n:Number):void {
+      _preview_scale = n;
+    }
+
     protected function setup():void { }
     
     public function set id(n:int):void { _id = n; }
