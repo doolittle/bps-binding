@@ -8,15 +8,19 @@ package com.betweenpageandscreen.binding.views
   import com.betweenpageandscreen.binding.helpers.PVHelper;
   import com.betweenpageandscreen.binding.interfaces.iBookModule;
   import com.betweenpageandscreen.binding.models.CameraParams;
+
   import com.bradwearsglasses.utils.helpers.GeneralHelper;
   import com.bradwearsglasses.utils.helpers.GraphicsHelper;
   import com.bradwearsglasses.utils.helpers.SpriteHelper;
+
 
   import flash.display.BitmapData;
   import flash.display.Sprite;
   import flash.events.ActivityEvent;
   import flash.events.Event;
   import flash.events.StatusEvent;
+  import flash.filters.BitmapFilterQuality;
+  import flash.filters.BlurFilter;
   import flash.geom.Matrix;
   import flash.geom.Rectangle;
   import flash.media.Camera;
@@ -32,6 +36,8 @@ package com.betweenpageandscreen.binding.views
   import org.libspark.flartoolkit.detector.FLARSingleMarkerDetector;
   import org.libspark.flartoolkit.support.pv3d.FLARCamera3D;
   import org.libspark.flartoolkit.support.pv3d.FLARMarkerNode;
+
+  import org.papervision3d.core.math.Number3D;
   import org.papervision3d.materials.ColorMaterial;
   import org.papervision3d.objects.primitives.Plane;
   import org.papervision3d.render.LazyRenderEngine;
@@ -45,15 +51,16 @@ package com.betweenpageandscreen.binding.views
     public var signal:Sprite      = new Sprite;
 
     private var viewport:Viewport3D;
-    private var camera3d:FLARCamera3D;
     private var scene_pv:Scene3D;
     private var renderer:LazyRenderEngine;
     private var markerWrapper3D:FLARMarkerNode;
-    private var plane:Plane;
+    private var debug_plane:Plane;
     private var videoTransformation:Matrix  = new Matrix;
     private var lost_marker_count:int   = 0;
     private var found_marker_count:int  = 0;
     private var TICK_DELAY:int    = BookConfig.TICK_DELAY;
+
+    private var preview_mode:Boolean = false;
 
     private var video:Video;
     private var capture:BitmapData;
@@ -74,7 +81,7 @@ package com.betweenpageandscreen.binding.views
 
     // Matches markers to modules (i.e. pages)
     public function add_marker(patt:String, module:iBookModule,module_id:int, params:CameraParams):void {
-      if (!patt) return;
+      if (!patt || !module) return;
 
       var flar_code:FLARCode = new FLARCode(BookConfig.MARKER_SIZE, BookConfig.MARKER_SIZE);
       flar_code.loadARPattFromFile(patt);
@@ -104,6 +111,31 @@ package com.betweenpageandscreen.binding.views
       if (hasEventListener(Event.ENTER_FRAME)) removeEventListener(Event.ENTER_FRAME, tick);
       addEventListener(Event.ENTER_FRAME, tick);
     }
+/*
+// Method to cleaning re-init the entire videoDisplay
+// Does not work yet.
+    public function kill():void {
+      trace("Resetting.");
+
+      if (video) {
+        video.clear()
+        video = null;
+      }
+
+      if (capture) {
+        capture.dispose();
+        capture = null;
+      }
+
+      if (raster) {
+        raster.dispose();
+        raster = null;
+      }
+
+      remove_tick_listeners();
+
+    }
+*/
 
     public function setup_webcam():void {
 
@@ -113,6 +145,15 @@ package com.betweenpageandscreen.binding.views
       video       = new Video(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT);
       capture     = new BitmapData(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT, false);
       raster      = new FLARRgbRaster(BookConfig.SAMPLE_WIDTH, BookConfig.SAMPLE_HEIGHT);
+
+      // Adds a blur to the webcam image.
+      if (BookConfig.CAM_BLUR > 0) {
+        var blur:BlurFilter = new BlurFilter();
+        blur.blurX = BookConfig.CAM_BLUR;
+        blur.blurY = BookConfig.CAM_BLUR;
+        blur.quality = BitmapFilterQuality.LOW;
+        video.filters = [blur];
+      }
 
       if (attach_webcam()) {
         dispatchEvent(new BookEvent(BookEvent.WEBCAM_ATTACHED));
@@ -148,15 +189,14 @@ package com.betweenpageandscreen.binding.views
         return false;
       }
 
-      trace('Before setMode, camera is ' + webcam.width + 'x' + webcam.height);
-      trace(" || Setting camera mode:" + BookConfig.CAMERA_WIDTH + "x" + BookConfig.CAMERA_HEIGHT);
+      trace("Setting camera mode:" + BookConfig.CAMERA_WIDTH + "x" + BookConfig.CAMERA_HEIGHT);
       webcam.setMode(BookConfig.CAMERA_WIDTH, BookConfig.CAMERA_HEIGHT, BookConfig.CAM_FPS,true);
 
+      // Flash gets the webcam to do the best it can. The results aren't necessarily what you asked for.
       trace("Camera actually set to:" + webcam.width + "x" + webcam.height + " | FPS:" + webcam.fps + "|" + webcam.currentFPS);
-      trace("Video is:" + video.width + "x" + video.height);
 
-      webcam.setMotionLevel(BookConfig.MOTION_LEVEL,BookConfig.MOTION_LEVEL);
-      webcam.setQuality(0,100); //Not sure if this is relevant
+      webcam.setMotionLevel(BookConfig.MOTION_LEVEL);
+      webcam.setQuality(0,100); //Not sure if this is relevant since we're not streaming.
 
       // Flash tells us whether anything is happening in the camera frame.
       // We're not doing anything with this right now.
@@ -175,11 +215,11 @@ package com.betweenpageandscreen.binding.views
 
       viewport = new Viewport3D(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
 
-      //Flop viewport
+      //Flop viewport to support mirroring.
       viewport.x = BookConfig.VIEW_WIDTH;
       viewport.scaleX*=-1;
 
-      camera3d = new FLARCamera3D(params.params);
+      var camera3d:FLARCamera3D = new FLARCamera3D(params.params);
 
       markerWrapper3D = new FLARMarkerNode(FLARMarkerNode.AXIS_MODE_PV3D);
       markerWrapper3D.useClipping = true;
@@ -187,21 +227,37 @@ package com.betweenpageandscreen.binding.views
       scene_pv = new Scene3D();
       scene_pv.addChild(markerWrapper3D);
 
-      if (BookConfig.DEBUG) {
-        plane = new Plane( new ColorMaterial(0x000000,.4),80,80);
-        markerWrapper3D.addChild(plane);
-        plane.addChild(PVHelper.draw_axes());
-      }
+      debug_plane = new Plane( new ColorMaterial(0xFF0000,.4),80,80);
+      debug_plane.addChild(PVHelper.draw_axes());
+      markerWrapper3D.addChild(debug_plane);
+      debug_plane.visible = false;
+
+      //add_reference_plane();
 
       renderer = new LazyRenderEngine(scene_pv, camera3d, viewport);
 
     }
 
+    //This just places a square in the middle of the screen.
+    private function add_reference_plane():void {
+      var referencePlane:Plane = new Plane(new ColorMaterial(0xFF0000, 0.4),80,80);
+      referencePlane.rotationX = 180;
+      referencePlane.rotationY = 180;
+      referencePlane.rotationZ = 90;
+      referencePlane.position = new Number3D(40,-10,700);
+      scene_pv.addChild(referencePlane);
+    }
+
     private function setup_viewport():void {
+
+      // Clear the graphics for screen and signal sprites.
+      SpriteHelper.wipe(screen);
+      SpriteHelper.wipe(signal);
 
       var b:Rectangle = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
 
-      //Screenback the camera image--white ghost to make 3d element more contrasty.
+      // Screenback the camera image
+      // white ghost to make 3d element more contrasty.
       GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1);
 
       b.inflate(BookConfig.BORDER_PADDING-1,BookConfig.BORDER_PADDING-1);
@@ -210,14 +266,16 @@ package com.betweenpageandscreen.binding.views
 
       SpriteHelper.add_these(this, video, screen, signal, viewport);
 
-      //Flop image
+      //Flop image - this makes the webcam image a mirror.
       video.scaleX = -1;
       video.x = video.width;
 
     }
 
     // This is where all the good stuff happens.
-    private function tick(e:Event = null):void {
+    // Note: could switch ticks for different modes
+    // instead of keeping all this logic in one function.
+    private function tick(event:Event = null):void {
 
       if (BookState.PAUSED) return;
 
@@ -236,9 +294,11 @@ package com.betweenpageandscreen.binding.views
         return;
       }
 
+      if (!webcam) return;
+
       // Don't recalculate position if there's no activity -
       // reduces flickering when reader is trying to hold still.
-      if (webcam && (!detected_marker || !current_module || webcam.activityLevel > BookConfig.MOTION_LEVEL)) {
+      if (!detected_marker || !current_module || webcam.activityLevel > BookConfig.MOTION_LEVEL) {
 
         // Update raster with the video data (i.e. webcam image)
         capture.draw(video,videoTransformation);
@@ -293,7 +353,7 @@ package com.betweenpageandscreen.binding.views
 
           signal.visible = true;
 
-          if (detected_marker && (!current_module || lost_marker_count > TICK_DELAY)) {
+          if (detected_marker && !current_module) {
 
             // Get the module for this marker.
             var detected_module:iBookModule = module_for(detected_marker);
@@ -302,15 +362,16 @@ package com.betweenpageandscreen.binding.views
             // If so, let's intro it.
             if (found_marker_count > TICK_DELAY && (current_module!==detected_module)) {
 
-              if (current_module) current_module.remove();
               lost_marker_count = 0;
               current_module = detected_module;
 
               BookHelper.debug("Introing module:" + current_module.id);
 
-              // TODO: Why does the module need to know "this" (the container)?
+              // We pass 'this' (the sprite) so we can use stage.height/width when exploding modules.
               current_module.init(this, markerWrapper3D);
               current_module.intro();
+
+              if (BookConfig.DEBUG) debug_plane.visible = true;
 
               dispatchEvent(new BookEvent(BookEvent.MARKER_FOUND));
               BetweenAS3.tween(screen, {alpha:BookConfig.SCREEN_ALPHA_MAX}, null, 0.5, Quad.easeIn).play();
@@ -319,14 +380,26 @@ package com.betweenpageandscreen.binding.views
             }
           }
 
+          found_marker_count++;
+
           if (detected_marker) {
             detected_marker.getTransformMatrix(transformation);
             markerWrapper3D.setTransformMatrix(transformation); //Update marker wrapper
+
+            if (markerWrapper3D.z < 0) {
+              // The disappearing marker problem might (?!) be caused by detection that
+              // inverts the z position -- placing it waaaay offscreen.
+              trace("Craaaazzzzy Z");
+              markerWrapper3D.z = -markerWrapper3D.z;
+              lost_marker_count++;
+              found_marker_count = 0;
+            }
           }
 
-          found_marker_count++;
+          //trace("Marker scale:" + markerWrapper3D.scaleX + "|" + markerWrapper3D.scaleY + "|" + markerWrapper3D.scaleZ);
+          //trace("Marker position:" + markerWrapper3D.x + "|" + markerWrapper3D.y + "|" + markerWrapper3D.z);
+          //trace("Marker rotation" + markerWrapper3D.rotationX + "|" + markerWrapper3D.rotationY + "|" + markerWrapper3D.rotationZ);
 
-        // No marker found.
         } else {
 
           //trace("lost_marker " + lost_marker + "|" + module)
@@ -340,13 +413,47 @@ package com.betweenpageandscreen.binding.views
             BetweenAS3.tween(screen,{alpha:BookConfig.SCREEN_ALPHA_MIN},null,.5,Quad.easeIn).play();
             current_module.remove();
             current_module = null;
-          }
+            if (BookConfig.DEBUG) debug_plane.visible = false;
 
+          }
         }
       }
 
       if (current_module) current_module.tick();
       renderer.render();
+
+    }
+
+    // Preview markers are permanently visible.
+    private var preview_module:iBookModule;
+    private function preview_tick(event:Event=null):void {
+
+      if (!preview_module) {
+
+        preview_module = module_for(markers[0]); //Default to first marker.
+
+        //Set markerWrapper position
+        markerWrapper3D.position = preview_module.preview_position;
+        markerWrapper3D.rotationX = preview_module.preview_rotation.x;
+        markerWrapper3D.rotationY = preview_module.preview_rotation.y;
+        markerWrapper3D.rotationZ = preview_module.preview_rotation.z;
+        markerWrapper3D.scale = preview_module.preview_scale;
+        markerWrapper3D.scaleX*=-1;
+
+        preview_module.init(this, markerWrapper3D);
+        preview_module.intro();
+        BetweenAS3.tween(screen, {alpha:BookConfig.SCREEN_ALPHA_MAX}, null, 0.5, Quad.easeIn).play();
+      }
+
+      preview_module.tick();
+      renderer.render();
+    }
+
+    public function reset_preview():void {
+      if (preview_module) {
+        preview_module.remove();
+        preview_module = null;
+      }
     }
 
     protected function module_for(target_detector:FLARSingleMarkerDetector):iBookModule {
@@ -370,5 +477,24 @@ package com.betweenpageandscreen.binding.views
       if (lost_marker_count === BookConfig.LOST_MARKER_TIMEOUT) dispatchEvent(new BookEvent(BookEvent.MARKER_TIMEOUT));
     }
 
+    private function remove_tick_listeners():void {
+      if (hasEventListener(Event.ENTER_FRAME)) {
+        removeEventListener(Event.ENTER_FRAME, tick);
+        removeEventListener(Event.ENTER_FRAME, preview_tick);
+      }
+    }
+
+    public function marker_preview_mode(status:Boolean):void {
+      preview_mode = status;
+
+      remove_tick_listeners();
+
+      if (preview_mode) {
+        addEventListener(Event.ENTER_FRAME, preview_tick);
+      } else {
+        addEventListener(Event.ENTER_FRAME, tick);
+      }
+
+    }
   }
 }
