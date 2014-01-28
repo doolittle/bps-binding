@@ -28,7 +28,9 @@ package com.betweenpageandscreen.binding.events
     public static var MARKERS_RESET:String      = 'markers_reset';
     public static var MARKERS_REASSIGN:String   = 'markers_reassign';
     public static var MARKERS_COMPLETE:String   = 'markers_complete';
-      
+
+    public static var MARKER_PREVIEW_MODE:String = 'marker_preview_mode';
+
     public static var MODULE_DESTROY:String     = 'module_destroy';
     
     public static var BOOK_READY:String         = 'book_ready';
@@ -40,6 +42,11 @@ package com.betweenpageandscreen.binding.events
     public static var WEBCAM_MULTIPLE:String    = 'webcam_multiple';
     public static var WEBCAM_MUTED:String       = 'webcam_muted';
     public static var WEBCAM_SWITCH:String      = 'webcam_switch';
+
+    public static var SCALE_SWITCH:String       = 'scale_switch';
+    public static var WIDESCREEN_SWITCH:String  = 'widescreen_switch';
+    public static var FPS_SWITCH:String         = 'fps_switch';
+    public static var DEBUG_SWITCH:String       = 'debug_switch';
 
     public static var VIEW_PREP:String          = 'view_prep';
     public static var VIEW_PREPPED:String       = 'view_prepped';
