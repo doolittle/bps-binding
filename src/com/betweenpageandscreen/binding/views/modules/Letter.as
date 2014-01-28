@@ -29,7 +29,6 @@ package com.betweenpageandscreen.binding.views.modules
     private var color:uint;
     public var string:String;
     public var width:Number;
-    private var display_alpha:Number = 1;
     private var tweener:ObjectTween;
       
     public function Letter(l:String=null)	{
