@@ -16,14 +16,16 @@ package com.betweenpageandscreen.binding.helpers
   public class LetterHelper
   {
 
-    public static var LINE_SPACE:Number = 16;
-    public static function place(...rest):Number {
-      return place_array(rest);
+    public static var LINE_HEIGHT:Number = 16;
+    public static var LETTER_SCALE:Number = 0.15;
+
+    public static function get ABS_LINE_HEIGHT():Number {
+      return LINE_HEIGHT*LETTER_SCALE;
     }
 
-    public static function place_array(a:Array, scale:Number = 1):Number {
-      var last_y:Number = 0, l:Letter, current_width:Number;
-      a.forEach(function(l:Letter, ...remainder):void {
+    public static function place_array(a:Array, scale:Number = 1, start_at:Number=0):Number {
+      var last_y:Number = start_at, current_width:Number;
+      a.forEach(function(l:Letter, ...rest):void {
           l.destination_scale = scale;
           current_width = BookConfig.TYPEFACE.widths[l.string]*l.destination_scale;
           l.character.y = last_y + current_width/2;
@@ -48,21 +50,29 @@ package com.betweenpageandscreen.binding.helpers
       return BookConfig.TYPEFACE.widths[character];
     }
 
-    public static function line(content:String, index:Number, a:Array, justify:Boolean=false, phrase:Array=null, container:DisplayObject3D=null, max_line_width:Number=0, prepopulated:Boolean=false, intro_type:String='from_marker'):Number {
+    // TODO: refactor. Difference between lines and phrase is confusing.
+    // Should have one method for assigning placement, another to actually
+    // add it to the 3D environment.
+    // Should also pass a config object instead of all these parameters.
+    public static function line(content:String, line_number:Number, lines:Array, justify:Boolean=false, phrase:Array=null, container:DisplayObject3D=null, max_line_width:Number=0, prepopulated:Boolean=false, intro_type:String='from_marker', right_align_last_line:Boolean=true):Number {
 
-      var display:Array = StringHelper.trim(content).split("");
-      var letters:Array = [];
-      var erasures:Object = {};
-      var i:int = -1, num_letters:int = display.length, letter:Letter;
-      var last_y:Number = -60;
-      var current_width:Number = 0;
-      var scale:Number = .15;
-      var line_width:Number = 280;
-      var last_line:Boolean = (index==(a.length-1));
+      var letters:Array = [],
+          erasures:Object = {},
+          last_y:Number = -60,
+          letter_width:Number = 0,
+          line_width:Number = 280,
+          text_width:Number = 0,
+          skipped:int = 0,
+          num_spaces:int = 0,
+          k:String,
+          letter:Letter,
+          erasable:Boolean = true,
+          display:Array = content.split(""), // Was previously trimming string, which was eating double-spaces.
+          num_letters:int = display.length,
+          last_line:Boolean = (line_number==(lines.length-1)),
+          i:int=-1;
 
-      var text_width:Number = 0, skipped:Number=0, num_spaces:Number=0, k:String,
-        erasable:Boolean=true;
-      while (++i < num_letters) {
+      while (++i < num_letters) { // Look at each letter for brackets and spaces.
 
         k = display[i];
 
@@ -79,7 +89,7 @@ package com.betweenpageandscreen.binding.helpers
         }
 
         if (k !=" ") {
-          text_width+=character_width(k)*scale;
+          text_width+=character_width(k)*LETTER_SCALE;
           if (erasable) erasures[i-skipped] = 1;
         } else {
           num_spaces++;
@@ -90,9 +100,11 @@ package com.betweenpageandscreen.binding.helpers
 
       if (text_width > max_line_width) max_line_width = text_width;
 
-      var space_size:Number = (text_width < line_width/BookConfig.LINE_JUSTIFICATION_TOLERANCE || !justify || last_line) ? character_width(" ")*scale : (line_width - text_width)/num_spaces
+      // Calculate justification by changing size of spaces.
+      var use_default_space_size:Boolean = (text_width < line_width/BookConfig.LINE_JUSTIFICATION_TOLERANCE || !justify || last_line);
+      var space_size:Number = (use_default_space_size) ? character_width(" ")*LETTER_SCALE : (line_width - text_width)/num_spaces;
 
-      if (last_line) {
+      if (last_line && right_align_last_line) {
         last_y+= max_line_width - (text_width);
       }
 
@@ -102,25 +114,43 @@ package com.betweenpageandscreen.binding.helpers
       var time:Number = 0;
 
       while (++i < num_letters) {
-        if (!letters[i]) continue; //we don't have this letter.
-        letter = (prepopulated) ? phrase[index][i] : new Letter(letters[i] as String);
+
+        if (!letters[i]) continue; // Not sure how this happens, but we don't have this letter.
+
+        try {
+          letter = (prepopulated) ? phrase[line_number][i] : new Letter(letters[i] as String);
+        } catch (e:Error) {
+          // This letter doesn't exist in the font, skip it.
+          // TODO: Handle this case. Should we display an error box or swallow it?
+          trace("## Couldn't create letter >" + letters[i]);
+          continue;
+        }
+
+        if (!letter) {
+          // If the letter failed the first time, when we re-init it won't be in the cache
+          // and won't exist here.
+          trace("Letter failed >" + letters[i]);
+          continue;
+        }
 
         letter.erasable = (erasures[i]);
 
         //set where we're going.
-        letter.destination_scale=scale;
-        current_width = (letter.string==" ") ? space_size : character_width(letter.string)*letter.destination_scale;
+        letter_width = (letter.string===" ") ? space_size : character_width(letter.string)*LETTER_SCALE;
 
         letter.destination_x = 40;
-        letter.destination_y = last_y + current_width/2;
-        letter.destination_z = -LINE_SPACE*index;
+        letter.destination_y = last_y + letter_width/2;
+        letter.destination_z = -LINE_HEIGHT*line_number; //Should be multiplied by scale?
+        letter.destination_scale=LETTER_SCALE;
 
         letter.destination_rx = 90;
         letter.destination_ry = 0;
         letter.destination_rz = 90;
 
         letter.destination_alpha=1;
-        last_y+=current_width;
+        last_y+=letter_width;
+
+        //trace("Adding letter >" + letter.string + "< width >" + letter_width + "< last_y >" + last_y + "<");
 
         switch(intro_type) {
           case "from_marker":
@@ -132,11 +162,11 @@ package com.betweenpageandscreen.binding.helpers
         }
 
         if (!prepopulated) {
-          if (!phrase[index]) phrase[index] = [];
-          phrase[index].push(letter);
+          if (!phrase[line_number]) phrase[line_number] = [];
+          phrase[line_number].push(letter);
         }
 
-        container.addChild(letter.character)
+        container.addChild(letter.character);
         letter.move_to(time);
       }
 
@@ -146,9 +176,9 @@ package com.betweenpageandscreen.binding.helpers
 
     public static function place_at_marker(letter:Letter):void {
 
-      letter.character.x = 0;
-      letter.character.y = 0;
-      letter.character.z = -200;
+      letter.character.x = -30;
+      letter.character.y = 60;
+      letter.character.z = -300;
 
       letter.character.scaleX = 0.01;
       letter.character.scaleY = 0.01;
