@@ -51,10 +51,14 @@ package com.betweenpageandscreen.binding.helpers
     }
 
     // TODO: refactor. Difference between lines and phrase is confusing.
+    // TODO: Should take an init object. Holy arguments, batman!
     // Should have one method for assigning placement, another to actually
     // add it to the 3D environment.
     // Should also pass a config object instead of all these parameters.
-    public static function line(content:String, line_number:Number, lines:Array, justify:Boolean=false, phrase:Array=null, container:DisplayObject3D=null, max_line_width:Number=0, prepopulated:Boolean=false, intro_type:String='from_marker', right_align_last_line:Boolean=true):Number {
+    public static function line(content:String, line_number:Number, lines:Array,
+                                justify:Boolean=false, phrase:Array=null, container:DisplayObject3D=null,
+                                max_line_width:Number=0, prepopulated:Boolean=false, intro_type:String='from_marker',
+                                right_align_last_line:Boolean=true):Number {
 
       var letters:Array = [],
           erasures:Object = {},
@@ -151,7 +155,6 @@ package com.betweenpageandscreen.binding.helpers
         last_y+=letter_width;
 
         //trace("Adding letter >" + letter.string + "< width >" + letter_width + "< last_y >" + last_y + "<");
-
         switch(intro_type) {
           case "from_marker":
             place_at_marker(letter);
@@ -174,6 +177,7 @@ package com.betweenpageandscreen.binding.helpers
 
     }
 
+    // TODO: We should have a standard origin point for the marker that we use everywhere.
     public static function place_at_marker(letter:Letter):void {
 
       letter.character.x = -30;
@@ -208,19 +212,19 @@ package com.betweenpageandscreen.binding.helpers
     public static function exit(l:Letter, container:Sprite, on_complete:Function=null, outro:String  = 'explode'):void {
       if (!l || !container) return;
 
-      //the letters are rotated in space, so:
-      //z = down
-      //y = left/right
+      //the letters are rotated in space, so x and y are reversed:
       //x = up down
+      //y = left/right
+      //z = depth
 
       var time:Number = 0;
       var easing:IEasing = Quad.easeIn;
 
       switch (outro) {
         case 'drop':
-          l.destination_y     = l.character.y;
-          l.destination_z     = -200; //Drop straight down.
           l.destination_x     = l.character.x;
+          l.destination_y     = l.character.y;
+          l.destination_z     = -200; //Drop straight down
           l.destination_rx    = NumberHelper.random(-360,360);
           l.destination_ry    = NumberHelper.random(-360,360);
           l.destination_rz    = NumberHelper.random(-360,360);
@@ -252,6 +256,7 @@ package com.betweenpageandscreen.binding.helpers
         default:
           l.destination_x     = NumberHelper.random(-(container.stage.width*2)/2,(container.stage.width*4)/2);
           l.destination_y     = NumberHelper.random(-(container.stage.width*2)/2,(container.stage.width*4)/2);
+          //TODO: Test biasing Z toward bigger negative numbers so it explodes forward more.
           l.destination_z     = NumberHelper.random(-(container.stage.height*2)/2,(container.stage.height*4)/2);
 
           l.destination_rx    = NumberHelper.random(-360,360);
@@ -261,10 +266,12 @@ package com.betweenpageandscreen.binding.helpers
           l.destination_scale = NumberHelper.random(-1000,1000)/100;
           l.destination_alpha = 1;
           break;
-
       }
 
-      if (on_complete !=null) l.addEventListener(Event.COMPLETE, on_complete);
+      if (on_complete !=null) {
+        l.addEventListener(Event.COMPLETE, on_complete);
+      }
+
       l.move_to(time, easing);
     }
 
