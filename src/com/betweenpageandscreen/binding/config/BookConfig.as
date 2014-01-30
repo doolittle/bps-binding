@@ -12,7 +12,7 @@ import org.papervision3d.typography.Font3D;
   public class BookConfig {
 
     public static function get BINDING_VERSION():String {
-      return "v.1.0.109";
+      return "v.1.0.113";
     }
 
     // Debug settings
@@ -43,7 +43,7 @@ import org.papervision3d.typography.Font3D;
     // We need this much confidence to accept a marker.
     // Lower numbers will increase false-positives,
     // higher numbers will increase flickering markers.
-    public static var MIN_CONFIDENCE:Number   = 0.65;
+    public static var MIN_CONFIDENCE:Number   = 0.55;
 
     // If we don't already have a marker, require a higher tolerance
     public static var HIGH_CONFIDENCE:Number  = 0.75;
