@@ -102,11 +102,12 @@ public class Epistle extends BookModule
     });
 
     if (auto_position) {
-      text.z = -vertical_position_text(lines.length,9, 20, text.scale);
       text.x = -36; //We won't mess with L/R placement for now.
+      text.z = -vertical_position_text(lines.length,9, 20, text.scale);
     } else {
-      text.z = -180; // Up down, lower numbers are vertically higher.
       text.x = -36; // left right
+      text.z = -155; // Up down, lower numbers are vertically higher.
+
     }
 
     //timer.mark("Lines created");
