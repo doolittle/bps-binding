@@ -26,20 +26,22 @@ public class Book extends Sprite {
   private var pulse:Sprite;
   private var exit:ObjectTween;
   private var waiter:ITween;
+  private var masker:Sprite;
 
   public function Book(){
 
     var bounds:Rectangle  = GraphicsHelper.rect(BookConfig.VIEW_WIDTH, BookConfig.VIEW_HEIGHT);
     display_port = GraphicsHelper.strut(new Sprite,bounds);
+    masker = GraphicsHelper.box(new Sprite, bounds,0xFFFFFF,1);
 
     bounds.inflate(BookConfig.BORDER_PADDING,BookConfig.BORDER_PADDING);
+
     border = GraphicsHelper.recession(new Sprite, bounds, 0xCCCCCC, 0xF2F2F2);
+    border.scaleX = border.scaleY = 0;
 
     pulse = GraphicsHelper.box(new Sprite, GraphicsHelper.rect(10, 10),0x000000,1);
 
-    border.scaleX = border.scaleY = 0;
-
-    SpriteHelper.add_these(display_port, border, videoDisplay);
+    SpriteHelper.add_these(display_port, border, videoDisplay, masker);
     SpriteHelper.add_these(this, display_port);
   }
 
@@ -72,7 +74,7 @@ public class Book extends Sprite {
   }
 
   protected function complete_intro(event:Event=null):void {
-    BetweenAS3.tween(videoDisplay.screen,{alpha:0},null,1.5,Quad.easeIn).play();
+    BetweenAS3.tween(masker,{alpha:0},null,1.5,Quad.easeIn).play();
 
     // TODO: Fix double broadcast
     dispatchEvent(new BookEvent(BookEvent.BOOK_COMPLETE));

@@ -110,6 +110,7 @@ package com.betweenpageandscreen.binding.views
     public function start():void {
       if (hasEventListener(Event.ENTER_FRAME)) removeEventListener(Event.ENTER_FRAME, tick);
       addEventListener(Event.ENTER_FRAME, tick);
+      dispatchEvent(new BookEvent(BookEvent.BOOK_READY));
     }
 /*
 // Method to cleaning re-init the entire videoDisplay
@@ -177,14 +178,11 @@ package com.betweenpageandscreen.binding.views
       }
 
       webcam = Camera.getCamera(BookState.SELECTED_CAMERA);
-      trace("You selected:" + BookState.SELECTED_CAMERA + "|" + webcam + "|" + webcam.muted)
 
       if (!webcam) {
-        trace("Didn't find a webcam");
         dispatchEvent(new BookEvent(BookEvent.WEBCAM_FAIL));
         return false;
       } else if (webcam.muted || Capabilities.avHardwareDisable) {
-        trace("Webcam is muted");
         dispatchEvent(new BookEvent(BookEvent.WEBCAM_MUTED));
         return false;
       }
@@ -429,7 +427,6 @@ package com.betweenpageandscreen.binding.views
     private function preview_tick(event:Event=null):void {
 
       if (!preview_module) {
-
         preview_module = module_for(markers[0]); //Default to first marker.
 
         //Set markerWrapper position
@@ -442,6 +439,7 @@ package com.betweenpageandscreen.binding.views
 
         preview_module.init(this, markerWrapper3D);
         preview_module.intro();
+
         BetweenAS3.tween(screen, {alpha:BookConfig.SCREEN_ALPHA_MAX}, null, 0.5, Quad.easeIn).play();
       }
 
