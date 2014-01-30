@@ -72,9 +72,14 @@ public class BootstrapperMediator extends Mediator{
 
     // If the webcam is muted we need to ask for permission, otherwise app hangs.
     eventMap.mapListener(view.videoDisplay, BookEvent.WEBCAM_MUTED, webcam_muted, BookEvent);
+    eventMap.mapListener(view.videoDisplay, BookEvent.BOOK_READY, rebroadcast, BookEvent);
 
     eventMap.mapListener(contextView.stage, Event.RESIZE, resize);
 
+  }
+
+  private function rebroadcast(event:BookEvent):void {
+    dispatch(event);
   }
 
   private function next(event:BookEvent=null):void {
