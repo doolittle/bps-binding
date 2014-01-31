@@ -12,7 +12,7 @@ import org.papervision3d.typography.Font3D;
   public class BookConfig {
 
     public static function get BINDING_VERSION():String {
-      return "v.1.0.118";
+      return "v.1.0.143";
     }
 
     // Debug settings
