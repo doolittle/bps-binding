@@ -7,7 +7,7 @@ package com.betweenpageandscreen.binding.views.modules
   import flash.events.EventDispatcher;
   
   import org.libspark.betweenas3.core.tweens.ObjectTween;
-import org.papervision3d.core.math.Number3D;
+  import org.papervision3d.core.math.Number3D;
 
 public class BookModule extends EventDispatcher implements iBookModule
   {

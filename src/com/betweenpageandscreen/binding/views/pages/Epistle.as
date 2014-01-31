@@ -94,21 +94,20 @@ public class Epistle extends BookModule
 
     max_line_width = 0;
 
-    lines.forEach(function(...rest):void {
-      max_line_width = LetterHelper.line(
-          rest[0], rest[1], rest[2],
-          justify, phrase, text, max_line_width,
-          prepopulated,'from_marker', !auto_position);
-    });
-
     if (auto_position) {
       text.x = -36; //We won't mess with L/R placement for now.
       text.z = -vertical_position_text(lines.length,9, 20, text.scale);
     } else {
       text.x = -36; // left right
-      text.z = -155; // Up down, lower numbers are vertically higher.
-
+      text.z = -140; // Up down, lower numbers are vertically higher.
     }
+
+    lines.forEach(function(...rest):void {
+      max_line_width = LetterHelper.line(
+        rest[0], rest[1], rest[2],
+        justify, phrase, text, max_line_width,
+        prepopulated,'from_marker', !auto_position);
+    });
 
     //timer.mark("Lines created");
 

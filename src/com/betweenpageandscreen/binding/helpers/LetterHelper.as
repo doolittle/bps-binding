@@ -36,7 +36,7 @@ package com.betweenpageandscreen.binding.helpers
     }
 
     public static function reset(l:Letter):void { //reset x/y/z scale of letter
-      l.character.scale       = .05;
+      l.character.scale       = 0.05;
       l.character.visible     = true;
       l.character.x           = 0;
       l.character.y           = 0;
@@ -115,8 +115,6 @@ package com.betweenpageandscreen.binding.helpers
       num_letters-=skipped;
       i = -1;
 
-      var time:Number = 0;
-
       while (++i < num_letters) {
 
         if (!letters[i]) continue; // Not sure how this happens, but we don't have this letter.
@@ -142,10 +140,10 @@ package com.betweenpageandscreen.binding.helpers
         //set where we're going.
         letter_width = (letter.string===" ") ? space_size : character_width(letter.string)*LETTER_SCALE;
 
-        letter.destination_x = 40;
-        letter.destination_y = last_y + letter_width/2;
-        letter.destination_z = -LINE_HEIGHT*line_number; //Should be multiplied by scale?
-        letter.destination_scale=LETTER_SCALE;
+        letter.destination_x     = 0;
+        letter.destination_y     = last_y + letter_width/2;
+        letter.destination_z     = -LINE_HEIGHT*line_number; //Should be multiplied by scale?
+        letter.destination_scale = LETTER_SCALE;
 
         letter.destination_rx = 90;
         letter.destination_ry = 0;
@@ -157,7 +155,7 @@ package com.betweenpageandscreen.binding.helpers
         //trace("Adding letter >" + letter.string + "< width >" + letter_width + "< last_y >" + last_y + "<");
         switch(intro_type) {
           case "from_marker":
-            place_at_marker(letter);
+            place_at_marker(letter, container);
             break;
           case "none":
             match_to_destination(letter);
@@ -170,7 +168,10 @@ package com.betweenpageandscreen.binding.helpers
         }
 
         container.addChild(letter.character);
+
+        var time:Number = 0; // When the method receives 0 it assigns a random time0;
         letter.move_to(time);
+
       }
 
       return max_line_width;
@@ -178,11 +179,12 @@ package com.betweenpageandscreen.binding.helpers
     }
 
     // TODO: We should have a standard origin point for the marker that we use everywhere.
-    public static function place_at_marker(letter:Letter):void {
+    public static function place_at_marker(letter:Letter, parent:DisplayObject3D=null):void {
 
-      letter.character.x = -30;
-      letter.character.y = 60;
-      letter.character.z = -300;
+      letter.character.x = 0; //Front/back
+      letter.character.y = 70; //left/right origin point - higher numbers, further right.
+
+      letter.character.z = (parent) ? parent.z-100 : -200; //height
 
       letter.character.scaleX = 0.01;
       letter.character.scaleY = 0.01;
@@ -207,6 +209,7 @@ package com.betweenpageandscreen.binding.helpers
       letter.character.rotationY = letter.destination_ry;
       letter.character.rotationZ = letter.destination_rz;
       letter.character.alpha = letter.destination_alpha;
+
     }
 
     public static function exit(l:Letter, container:Sprite, on_complete:Function=null, outro:String  = 'explode'):void {
@@ -224,7 +227,7 @@ package com.betweenpageandscreen.binding.helpers
         case 'drop':
           l.destination_x     = l.character.x;
           l.destination_y     = l.character.y;
-          l.destination_z     = -200; //Drop straight down
+          l.destination_z     = -120; //Drop straight down
           l.destination_rx    = NumberHelper.random(-360,360);
           l.destination_ry    = NumberHelper.random(-360,360);
           l.destination_rz    = NumberHelper.random(-360,360);
