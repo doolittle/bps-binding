@@ -257,6 +257,7 @@ package com.betweenpageandscreen.binding.views
       // Screenback the camera image
       // white ghost to make 3d element more contrasty.
       GraphicsHelper.box(screen, b, BookConfig.SCREENBACK_COLOR,1);
+      screen.alpha = 0;
 
       b.inflate(BookConfig.BORDER_PADDING-1,BookConfig.BORDER_PADDING-1);
       GraphicsHelper.border(signal, b, 0xFF0000, 0xFF0000);
