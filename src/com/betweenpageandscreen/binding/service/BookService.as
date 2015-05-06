@@ -44,6 +44,10 @@ package com.betweenpageandscreen.binding.service
       dispatch(event);
     }
 
+    public static function log(message:String):void {
+      javascript("console.log", [message]);
+    }
+
     //TODO: This should just be a method on a helper.
     public static function javascript(method_name:String, args:Array=null):void {
       try {
