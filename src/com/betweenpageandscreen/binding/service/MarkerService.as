@@ -2,7 +2,6 @@ package com.betweenpageandscreen.binding.service
 {
   import com.betweenpageandscreen.binding.events.BookEvent;
   import com.betweenpageandscreen.binding.models.Markers;
-  import com.bradwearsglasses.utils.helpers.ArrayHelper;
   import com.bradwearsglasses.utils.queue.Queue;
   import com.bradwearsglasses.utils.queue.QueueEvent;
   import com.bradwearsglasses.utils.service.GenericService;
@@ -32,7 +31,6 @@ package com.betweenpageandscreen.binding.service
     }
 
     public function load_all_markers(_markers_to_load:Array):void {
-      trace("@@TODO: Loading all markers -- doesn't exist yet");
       markers_to_load = _markers_to_load;
       load_next_marker(markers_to_load.shift() as String);
     }
@@ -51,16 +49,13 @@ package com.betweenpageandscreen.binding.service
       dispatch(loaded_event);
 
       if (markers_to_load.length > 0) {
-        trace("\nWe've got to load another code");
         load_next_marker(markers_to_load.shift() as String);
       } else {
-        trace("\nWe're all done loading codes");
         dispatch(new BookEvent(BookEvent.MARKERS_COMPLETE));
       }
     }
 
     private function load_marker_fail(event:GenericServiceEvent):void {
-      trace("Failed load markers:");
       dispatch(event);
     }
 
